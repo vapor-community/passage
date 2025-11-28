@@ -11,13 +11,51 @@ import Foundation
 
 extension Identity {
 
-    enum Verification {}
+    /// Core service for orchestrating verification flows.
+    /// Supports both synchronous delivery and async via Vapor Queues.
+    struct Verification: Sendable {
+        let request: Request
+        let config: Identity.Configuration.Verification
+    }
 
 }
 
+extension Identity.Verification {
+
+    var store: any Identity.Store {
+        get throws {
+            try request.store
+        }
+    }
+
+    var random: any Identity.RandomGenerator {
+        request.random
+    }
+
+    var emailDelivery: (any Identity.EmailDelivery)? {
+        request.emailDelivery
+    }
+
+    var phoneDelivery: (any Identity.PhoneDelivery)? {
+        request.phoneDelivery
+    }
+
+}
+
+extension Request {
+
+    var verification: Identity.Verification {
+        Identity.Verification(
+            request: self,
+            config: configuration.verification
+        )
+    }
+}
+
+
 // MARK: - Email Delivery Protocol
 
-extension Identity.Verification {
+extension Identity {
 
     /// Protocol for sending verification emails.
     /// Implementations handle template selection and delivery.
@@ -53,7 +91,7 @@ extension Identity.Verification {
 
 // MARK: - Phone Delivery Protocol
 
-extension Identity.Verification {
+extension Identity {
 
     /// Protocol for sending verification SMS/calls.
     /// Implementations handle message formatting and delivery.
@@ -125,135 +163,116 @@ import Vapor
 
 extension Identity.Verification {
 
-    /// Core service for orchestrating verification flows.
-    /// Supports both synchronous delivery and async via Vapor Queues.
-    struct Service: Sendable {
-        let request: Request
-        let store: any Identity.Store
-        let random: any Identity.RandomGenerator
-        let deliveryEmail: (any EmailDelivery)?
-        let deliveryPhone: (any PhoneDelivery)?
-        let config: Identity.Configuration.Verification
-
-        /// Send email verification code to a user.
-        /// Code is generated and stored synchronously.
-        /// Delivery is dispatched to queue if available, otherwise sent synchronously.
-        func sendEmailCode(to user: any User) async throws {
-            guard deliveryEmail != nil else {
-                throw IdentityError.emailDeliveryNotConfigured
-            }
-
-            guard let emailConfig = config.email else {
-                throw IdentityError.emailDeliveryNotConfigured
-            }
-
-            guard let email = user.email else {
-                throw AuthenticationError.emailNotSet
-            }
-
-            // Invalidate existing codes
-            try await store.codes.invalidateEmailCodes(forEmail: email)
-
-            // Generate and store code (synchronous - needed before response)
-            let code = random.generateVerificationCode(length: emailConfig.codeLength)
-            let hash = random.hashOpaqueToken(token: code)
-
-            try await store.codes.createEmailCode(
-                for: user,
-                email: email,
-                codeHash: hash,
-                expiresAt: Date().addingTimeInterval(emailConfig.codeExpiration)
-            )
-
-            // Dispatch delivery (queue or sync)
-            try await dispatchEmailDelivery(
-                email: email,
-                code: code,
-                userId: try user.requiredIdAsString
-            )
+    /// Send email verification code to a user.
+    /// Code is generated and stored synchronously.
+    /// Delivery is dispatched to queue if available, otherwise sent synchronously.
+    func sendEmailCode(to user: any User) async throws {
+        guard emailDelivery != nil else {
+            throw IdentityError.emailDeliveryNotConfigured
         }
 
-        /// Send phone verification code to a user.
-        func sendPhoneCode(to user: any User) async throws {
-            guard deliveryPhone != nil else {
-                throw IdentityError.phoneDeliveryNotConfigured
-            }
+        guard let email = user.email else {
+            throw AuthenticationError.emailNotSet
+        }
 
-            guard let phoneConfig = config.phone else {
-                throw IdentityError.phoneDeliveryNotConfigured
-            }
+        // Invalidate existing codes
+        try await store.codes.invalidateEmailCodes(forEmail: email)
 
-            guard let phone = user.phone else {
-                throw AuthenticationError.phoneNotSet
-            }
+        // Generate and store code (synchronous - needed before response)
+        let code = random.generateVerificationCode(length: config.email.codeLength)
+        let hash = random.hashOpaqueToken(token: code)
 
-            // Invalidate existing codes
-            try await store.codes.invalidatePhoneCodes(forPhone: phone)
+        try await store.codes.createEmailCode(
+            for: user,
+            email: email,
+            codeHash: hash,
+            expiresAt: Date().addingTimeInterval(config.email.codeExpiration)
+        )
 
-            // Generate and store code
-            let code = random.generateVerificationCode(length: phoneConfig.codeLength)
-            let hash = random.hashOpaqueToken(token: code)
+        // Dispatch delivery (queue or sync)
+        try await dispatchEmailDelivery(
+            email: email,
+            code: code,
+            userId: try user.requiredIdAsString
+        )
+    }
 
-            try await store.codes.createPhoneCode(
-                for: user,
-                phone: phone,
-                codeHash: hash,
-                expiresAt: Date().addingTimeInterval(phoneConfig.codeExpiration)
+    /// Send phone verification code to a user.
+    func sendPhoneCode(to user: any User) async throws {
+        guard phoneDelivery != nil else {
+            throw IdentityError.phoneDeliveryNotConfigured
+        }
+
+        guard let phone = user.phone else {
+            throw AuthenticationError.phoneNotSet
+        }
+
+        // Invalidate existing codes
+        try await store.codes.invalidatePhoneCodes(forPhone: phone)
+
+        // Generate and store code
+        let code = random.generateVerificationCode(length: config.phone.codeLength)
+        let hash = random.hashOpaqueToken(token: code)
+
+        try await store.codes.createPhoneCode(
+            for: user,
+            phone: phone,
+            codeHash: hash,
+            expiresAt: Date().addingTimeInterval(config.phone.codeExpiration)
+        )
+
+        // Dispatch delivery (queue or sync)
+        try await dispatchPhoneDelivery(
+            phone: phone,
+            code: code,
+            userId: try user.requiredIdAsString
+        )
+    }
+
+    /// Send verification code based on identifier kind.
+    func sendVerificationCode(for user: any User, identifierKind: Identifier.Kind) async throws {
+        switch identifierKind {
+        case .email:
+            try await sendEmailCode(to: user)
+        case .phone:
+            try await sendPhoneCode(to: user)
+        case .username:
+            break // Username doesn't require verification
+        }
+    }
+
+    // MARK: - Private Dispatch Methods
+
+    private func dispatchEmailDelivery(email: String, code: String, userId: String) async throws {
+        let payload = SendEmailCodePayload(email: email, code: code, userId: userId)
+
+        if config.useQueues {
+            try await request.queue.dispatch(
+                SendEmailCodeJob.self,
+                payload,
+                maxRetryCount: 3
             )
+        } else {
+            // Synchronous fallback
+            guard let delivery = emailDelivery else { return }
+            guard let user = try await store.users.find(byId: userId) else { return }
+            try await delivery.sendVerificationEmail(to: email, code: code, user: user)
+        }
+    }
 
-            // Dispatch delivery (queue or sync)
-            try await dispatchPhoneDelivery(
-                phone: phone,
-                code: code,
-                userId: try user.requiredIdAsString
+    private func dispatchPhoneDelivery(phone: String, code: String, userId: String) async throws {
+        let payload = SendPhoneCodePayload(phone: phone, code: code, userId: userId)
+
+        if config.useQueues {
+            try await request.queue.dispatch(
+                SendPhoneCodeJob.self,
+                payload,
+                maxRetryCount: 3
             )
-        }
-
-        /// Send verification code based on identifier kind.
-        func sendVerificationCode(for user: any User, identifierKind: Identifier.Kind) async throws {
-            switch identifierKind {
-            case .email:
-                try await sendEmailCode(to: user)
-            case .phone:
-                try await sendPhoneCode(to: user)
-            case .username:
-                break // Username doesn't require verification
-            }
-        }
-
-        // MARK: - Private Dispatch Methods
-
-        private func dispatchEmailDelivery(email: String, code: String, userId: String) async throws {
-            let payload = SendEmailCodePayload(email: email, code: code, userId: userId)
-
-            if config.useQueues {
-                try await request.queue.dispatch(
-                    SendEmailCodeJob.self,
-                    payload,
-                    maxRetryCount: 3
-                )
-            } else {
-                // Synchronous fallback
-                guard let delivery = deliveryEmail else { return }
-                guard let user = try await store.users.find(byId: userId) else { return }
-                try await delivery.sendVerificationEmail(to: email, code: code, user: user)
-            }
-        }
-
-        private func dispatchPhoneDelivery(phone: String, code: String, userId: String) async throws {
-            let payload = SendPhoneCodePayload(phone: phone, code: code, userId: userId)
-
-            if config.useQueues {
-                try await request.queue.dispatch(
-                    SendPhoneCodeJob.self,
-                    payload,
-                    maxRetryCount: 3
-                )
-            } else {
-                guard let delivery = deliveryPhone else { return }
-                guard let user = try await store.users.find(byId: userId) else { return }
-                try await delivery.sendVerificationSMS(to: phone, code: code, user: user)
-            }
+        } else {
+            guard let delivery = phoneDelivery else { return }
+            guard let user = try await store.users.find(byId: userId) else { return }
+            try await delivery.sendVerificationSMS(to: phone, code: code, user: user)
         }
     }
 }

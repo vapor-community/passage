@@ -9,11 +9,11 @@ import Vapor
 
 struct IdentityRouteCollection: RouteCollection {
 
-    init(routes: Identity.Routes) {
+    init(routes: Identity.Configuration.Routes) {
         self.routes = routes
     }
 
-    let routes: Identity.Routes
+    let routes: Identity.Configuration.Routes
 
     func boot(routes builder: any RoutesBuilder) throws {
         let grouped = routes.group.isEmpty ? builder : builder.grouped(routes.group)
@@ -43,7 +43,7 @@ extension IdentityRouteCollection {
         // Find the newly created user and send verification based on identifier type
         if let user = try await req.store.users.find(byIdentifier: credential.identifier) {
             // Fire-and-forget: don't fail registration if verification send fails
-            try? await req.verificationService.sendVerificationCode(
+            try? await req.verification.sendVerificationCode(
                 for: user,
                 identifierKind: credential.identifier.kind
             )

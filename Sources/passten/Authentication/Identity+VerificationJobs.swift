@@ -24,7 +24,7 @@ extension Identity.Verification {
         typealias Payload = SendEmailCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            guard let delivery = context.application.identity.deliveryEmail else {
+            guard let delivery = context.application.identity.emailDelivery else {
                 context.logger.warning("Email delivery not configured, skipping job")
                 return
             }
@@ -63,7 +63,7 @@ extension Identity.Verification {
         typealias Payload = SendPhoneCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            guard let delivery = context.application.identity.deliveryPhone else {
+            guard let delivery = context.application.identity.phoneDelivery else {
                 context.logger.warning("Phone delivery not configured, skipping job")
                 return
             }

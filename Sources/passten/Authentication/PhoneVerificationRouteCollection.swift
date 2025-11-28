@@ -38,7 +38,7 @@ extension PhoneVerificationRouteCollection {
         }
 
         // Use the verification service (handles queue dispatch or sync)
-        try await req.verificationService.sendPhoneCode(to: user)
+        try await req.verification.sendPhoneCode(to: user)
 
         return .ok
     }
@@ -85,7 +85,7 @@ extension PhoneVerificationRouteCollection {
         try await req.store.codes.invalidatePhoneCodes(forPhone: phone)
 
         // Optionally send confirmation
-        if let delivery = req.deliveryPhone {
+        if let delivery = req.phoneDelivery {
             try? await delivery.sendVerificationConfirmation(to: phone, user: user)
         }
 

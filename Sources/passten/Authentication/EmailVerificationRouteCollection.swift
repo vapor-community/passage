@@ -38,7 +38,7 @@ extension EmailVerificationRouteCollection {
         }
 
         // Use the verification service (handles queue dispatch or sync)
-        try await req.verificationService.sendEmailCode(to: user)
+        try await req.verification.sendEmailCode(to: user)
 
         return .ok
     }
@@ -85,7 +85,7 @@ extension EmailVerificationRouteCollection {
         try await req.store.codes.invalidateEmailCodes(forEmail: email)
 
         // Optionally send confirmation
-        if let delivery = req.deliveryEmail {
+        if let delivery = req.emailDelivery {
             try? await delivery.sendVerificationConfirmation(to: email, user: user)
         }
 
