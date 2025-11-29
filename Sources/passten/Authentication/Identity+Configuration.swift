@@ -11,17 +11,20 @@ import Vapor
 extension Identity {
 
     struct Configuration {
+        let baseURL: URL
         let routes: Routes
         let tokens: Tokens
         let jwt: JWT
         let verification: Verification
 
         init(
+            baseURL: URL,
             routes: Routes = .init(),
             tokens: Tokens = .init(),
             jwt: JWT? = nil,
             verification: Verification = .init(),
         ) throws {
+            self.baseURL = baseURL
             self.routes = routes
             self.tokens = tokens
             self.jwt = try jwt ?? JWT(jwks: try .fileFromEnvironment())
@@ -244,14 +247,9 @@ extension Identity.Configuration.Verification {
         let codeExpiration: TimeInterval
         let maxAttempts: Int
 
+        // MARK: - Routes
+
         struct Routes: Sendable {
-            struct SendCode: Sendable {
-                static let `default` = SendCode(path: "email", "send-code")
-                let path: [PathComponent]
-                init(path: PathComponent...) {
-                    self.path = path
-                }
-            }
 
             struct Verify: Sendable {
                 static let `default` = Verify(path: "email", "verify")
@@ -269,16 +267,13 @@ extension Identity.Configuration.Verification {
                 }
             }
 
-            let sendCode: SendCode
             let verify: Verify
             let resend: Resend
 
             init(
-                sendCode: SendCode = .default,
                 verify: Verify = .default,
                 resend: Resend = .default
             ) {
-                self.sendCode = sendCode
                 self.verify = verify
                 self.resend = resend
             }
@@ -288,13 +283,21 @@ extension Identity.Configuration.Verification {
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 15 * 60,
-            maxAttempts: Int = 3
+            maxAttempts: Int = 3,
         ) {
             self.routes = routes
             self.codeLength = codeLength
             self.codeExpiration = codeExpiration
             self.maxAttempts = maxAttempts
         }
+    }
+
+}
+
+extension Identity.Configuration {
+
+    var emailVerificationURL: URL {
+        baseURL.appending(path: (routes.group + verification.email.routes.verify.path).string)
     }
 
 }
@@ -360,6 +363,14 @@ extension Identity.Configuration.Verification {
             self.codeExpiration = codeExpiration
             self.maxAttempts = maxAttempts
         }
+    }
+
+}
+
+extension Identity.Configuration {
+
+    var phoneVerificationURL: URL {
+        baseURL.appending(path: (routes.group + verification.phone.routes.verify.path).string)
     }
 
 }

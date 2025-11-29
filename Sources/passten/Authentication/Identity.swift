@@ -13,7 +13,7 @@ struct Identity: Sendable {
         self.app = app
     }
 
-    private let app: Application
+    let app: Application
 
     // MARK: - Configuration
 
@@ -22,7 +22,7 @@ struct Identity: Sendable {
         configuration: Configuration,
     ) async throws {
 
-        app.identityStorage = Storage(services: services, configuration: configuration)
+        self.storage = Storage(services: services, configuration: configuration)
 
         try await app.jwt.keys.add(jwksJSON: configuration.jwt.jwks.json)
 
@@ -56,10 +56,6 @@ struct Identity: Sendable {
 // MARK: - Storage Accessors
 
 extension Identity {
-
-    var storage: Storage {
-        app.identityStorage
-    }
 
     var services: Services {
         storage.services

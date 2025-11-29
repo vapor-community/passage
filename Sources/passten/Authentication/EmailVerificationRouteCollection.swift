@@ -15,8 +15,8 @@ struct EmailVerificationRouteCollection: RouteCollection {
     func boot(routes builder: any RoutesBuilder) throws {
         let grouped = groupPath.isEmpty ? builder : builder.grouped(groupPath)
 
-        grouped.post(config.routes.sendCode.path, use: sendCode)
-        grouped.post(config.routes.verify.path, use: verify)
+        grouped.post(config.routes.verify.path, use: send)
+        grouped.get(config.routes.verify.path, use: verify)
         grouped.post(config.routes.resend.path, use: resend)
     }
 
@@ -26,7 +26,7 @@ struct EmailVerificationRouteCollection: RouteCollection {
 
 extension EmailVerificationRouteCollection {
 
-    func sendCode(_ req: Request) async throws -> HTTPStatus {
+    func send(_ req: Request) async throws -> HTTPStatus {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)
 
         guard let user = try await req.store.users.find(byId: accessToken.subject.value) else {
@@ -55,7 +55,7 @@ extension EmailVerificationRouteCollection {
 
     func verify(_ req: Request) async throws -> HTTPStatus {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)
-        let form = try req.content.decode(VerifyForm.self)
+        let form = try req.query.decode(VerifyForm.self)
 
         guard let user = try await req.store.users.find(byId: accessToken.subject.value) else {
             throw AuthenticationError.userNotFound
@@ -86,7 +86,7 @@ extension EmailVerificationRouteCollection {
 
         // Optionally send confirmation
         if let delivery = req.emailDelivery {
-            try? await delivery.sendVerificationConfirmation(to: email, user: user)
+            try? await delivery.sendEmailVerificationConfirmation(to: email, user: user)
         }
 
         return .ok
@@ -99,7 +99,7 @@ extension EmailVerificationRouteCollection {
 extension EmailVerificationRouteCollection {
 
     func resend(_ req: Request) async throws -> HTTPStatus {
-        try await sendCode(req)
+        try await send(req)
     }
 
 }

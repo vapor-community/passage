@@ -29,11 +29,11 @@ extension Identity {
     }
 }
 
-extension Application {
+extension Identity {
 
-    var identityStorage: Identity.Storage {
+    var storage: Identity.Storage {
         get {
-            guard let storage = storage[Identity.Storage.Key.self] else {
+            guard let storage = app.storage[Identity.Storage.Key.self] else {
                 fatalError("""
                     Identity not configured. Call app.identity.configure() during application setup.
                     Example:
@@ -45,17 +45,16 @@ extension Application {
             }
             return storage
         }
-        set {
-            guard storage[Identity.Storage.Key.self] == nil else {
+        nonmutating set {
+            guard app.storage[Identity.Storage.Key.self] == nil else {
                 fatalError("""
                     Identity storage has already been set.
                     Make sure to call app.identity.configure() only once during application setup.
                     """)
             }
-            storage[Identity.Storage.Key.self] = newValue
+            app.storage[Identity.Storage.Key.self] = newValue
         }
     }
-
 }
 
 // MARK: - Application Support

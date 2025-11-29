@@ -23,9 +23,7 @@ extension Identity {
 extension Identity.Verification {
 
     var store: any Identity.Store {
-        get throws {
-            try request.store
-        }
+        request.store
     }
 
     var random: any Identity.RandomGenerator {
@@ -61,30 +59,32 @@ extension Identity {
     /// Implementations handle template selection and delivery.
     protocol EmailDelivery: Sendable {
         /// Send a verification code email
-        func sendVerificationEmail(
+        func sendEmailVerification(
             to email: String,
-            code: String,
-            user: any User
+            user: any User,
+            verificationURL: URL,
+            verificationCode: String,
+        ) async throws
+
+        /// Send email verification success confirmation
+        func sendEmailVerificationConfirmation(
+            to email: String,
+            user: any User,
         ) async throws
 
         /// Send password reset email
         func sendPasswordResetEmail(
             to email: String,
-            code: String,
-            user: any User
+            user: any User,
+            passwordResetURL: URL,
         ) async throws
 
         /// Send welcome email after registration
         func sendWelcomeEmail(
             to email: String,
-            user: any User
+            user: any User,
         ) async throws
 
-        /// Send email verification success confirmation
-        func sendVerificationConfirmation(
-            to email: String,
-            user: any User
-        ) async throws
     }
 
 }
@@ -97,14 +97,7 @@ extension Identity {
     /// Implementations handle message formatting and delivery.
     protocol PhoneDelivery: Sendable {
         /// Send a verification code via SMS
-        func sendVerificationSMS(
-            to phone: String,
-            code: String,
-            user: any User
-        ) async throws
-
-        /// Send password reset code via SMS
-        func sendPasswordResetSMS(
+        func sendPhoneVerification(
             to phone: String,
             code: String,
             user: any User
@@ -115,6 +108,14 @@ extension Identity {
             to phone: String,
             user: any User
         ) async throws
+
+        /// Send password reset code via SMS
+        func sendPasswordResetSMS(
+            to phone: String,
+            code: String,
+            user: any User
+        ) async throws
+
     }
 
 }
@@ -244,7 +245,20 @@ extension Identity.Verification {
     // MARK: - Private Dispatch Methods
 
     private func dispatchEmailDelivery(email: String, code: String, userId: String) async throws {
-        let payload = SendEmailCodePayload(email: email, code: code, userId: userId)
+
+        let verificationURL = request.configuration.emailVerificationURL
+            .appending(
+                queryItems: [
+                    .init(name: "code", value: code)
+                ]
+            )
+
+        let payload = SendEmailCodePayload(
+            email: email,
+            userId: userId,
+            verificationURL: verificationURL,
+            verificationCode: code
+        )
 
         if config.useQueues {
             try await request.queue.dispatch(
@@ -256,7 +270,12 @@ extension Identity.Verification {
             // Synchronous fallback
             guard let delivery = emailDelivery else { return }
             guard let user = try await store.users.find(byId: userId) else { return }
-            try await delivery.sendVerificationEmail(to: email, code: code, user: user)
+            try await delivery.sendEmailVerification(
+                to: email,
+                user: user,
+                verificationURL: verificationURL,
+                verificationCode: code
+            )
         }
     }
 
@@ -272,7 +291,7 @@ extension Identity.Verification {
         } else {
             guard let delivery = phoneDelivery else { return }
             guard let user = try await store.users.find(byId: userId) else { return }
-            try await delivery.sendVerificationSMS(to: phone, code: code, user: user)
+            try await delivery.sendPhoneVerification(to: phone, code: code, user: user)
         }
     }
 }

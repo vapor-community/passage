@@ -15,8 +15,9 @@ extension Identity.Verification {
     /// Job payload for sending email verification
     struct SendEmailCodePayload: Codable {
         let email: String
-        let code: String
         let userId: String
+        let verificationURL: URL
+        let verificationCode: String
     }
 
     /// Async job for sending email verification codes
@@ -24,20 +25,23 @@ extension Identity.Verification {
         typealias Payload = SendEmailCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            guard let delivery = context.application.identity.emailDelivery else {
+            let identity = context.application.identity
+
+            guard let delivery = identity.emailDelivery else {
                 context.logger.warning("Email delivery not configured, skipping job")
                 return
             }
 
-            guard let user = try await context.application.identity.store.users.find(byId: payload.userId) else {
+            guard let user = try await identity.store.users.find(byId: payload.userId) else {
                 context.logger.warning("User not found for email verification job: \(payload.userId)")
                 return
             }
 
-            try await delivery.sendVerificationEmail(
+            try await delivery.sendEmailVerification(
                 to: payload.email,
-                code: payload.code,
-                user: user
+                user: user,
+                verificationURL: payload.verificationURL,
+                verificationCode: payload.verificationCode
             )
         }
 
@@ -73,7 +77,7 @@ extension Identity.Verification {
                 return
             }
 
-            try await delivery.sendVerificationSMS(
+            try await delivery.sendPhoneVerification(
                 to: payload.phone,
                 code: payload.code,
                 user: user
