@@ -16,6 +16,7 @@ extension Identity {
         let tokens: Tokens
         let jwt: JWT
         let verification: Verification
+        let oauth: FederatedLogin
 
         init(
             baseURL: URL,
@@ -23,12 +24,14 @@ extension Identity {
             tokens: Tokens = .init(),
             jwt: JWT? = nil,
             verification: Verification = .init(),
+            oauth: FederatedLogin = .init(routes: .init(), providers: [])
         ) throws {
             self.baseURL = baseURL
             self.routes = routes
             self.tokens = tokens
             self.jwt = try jwt ?? JWT(jwks: try .fileFromEnvironment())
             self.verification = verification
+            self.oauth = oauth
         }
     }
 
@@ -373,4 +376,148 @@ extension Identity.Configuration {
         baseURL.appending(path: (routes.group + verification.phone.routes.verify.path).string)
     }
 
+}
+
+// MARK: - Federated Login
+
+extension Identity.Configuration {
+
+    struct FederatedLogin: Sendable {
+        struct Routes: Sendable {
+            let group: [PathComponent]
+
+            init(group: PathComponent...) {
+                self.group = group
+            }
+
+            init() {
+                self.group = ["oauth"]
+            }
+        }
+
+        struct Provider: Sendable {
+            struct Name: Sendable, Codable, Hashable, RawRepresentable {
+                let rawValue: String
+            }
+
+            enum Credentials: Sendable {
+                case conventional
+                case client(id: String, secret: String)
+            }
+
+            struct Routes: Sendable {
+                struct Login: Sendable {
+                    let path: [PathComponent]
+                    init(path: PathComponent...) {
+                        self.path = path
+                    }
+                    init(path: [PathComponent]) {
+                        self.path = path
+                    }
+                }
+
+                struct Callback: Sendable {
+                    let path: [PathComponent]
+                    init(path: PathComponent...) {
+                        self.path = path
+                    }
+                    init(path: [PathComponent]) {
+                        self.path = path
+                    }
+                }
+
+                let login: Login
+                let callback: Callback
+
+                init(
+                    login: Login = .init(),
+                    callback: Callback = .init(path: "callback")
+                ) {
+                    self.login = login
+                    self.callback = callback
+                }
+            }
+
+            let name: Name
+            let routes: Routes
+            let credentials: Credentials
+
+            init(
+                name: Name,
+                credentials: Credentials = .conventional,
+                routes: Routes? = nil,
+            ) {
+                self.name = name
+                self.credentials = credentials
+                self.routes = routes ?? .init(
+                    login: .init(path: name.rawValue.pathComponents),
+                    callback: .init(path: name.rawValue.pathComponents + ["callback"])
+                )
+
+            }
+        }
+
+        let routes: Routes
+        let providers: [Provider]
+
+        init(
+            routes: Routes = .init(),
+            providers: [Provider],
+        ) {
+            self.routes = routes
+            self.providers = providers
+        }
+    }
+
+}
+
+extension Identity.Configuration.FederatedLogin {
+    func loginPath(for provider: Identity.Configuration.FederatedLogin.Provider) -> [PathComponent] {
+        return routes.group + provider.routes.login.path
+    }
+    func callbackPath(for provider: Identity.Configuration.FederatedLogin.Provider) -> [PathComponent] {
+        return routes.group + provider.routes.callback.path
+    }
+}
+
+extension Identity.Configuration.FederatedLogin.Provider {
+
+    static func google(
+        credentials: Credentials = .conventional,
+        routes: Routes? = nil,
+    ) -> Self {
+        .init(
+            name: .google,
+            credentials: credentials,
+            routes: routes,
+        )
+    }
+
+    static func github(
+        credentials: Credentials = .conventional,
+        routes: Routes? = nil,
+    ) -> Self {
+        .init(
+            name: .github,
+            credentials: credentials,
+            routes: routes,
+        )
+    }
+
+    static func custom(
+        name: String,
+        credentials: Credentials = .conventional,
+        routes: Routes? = nil,
+    ) -> Self {
+        .init(
+            name: .init(rawValue: name),
+            credentials: credentials,
+            routes: routes,
+        )
+    }
+}
+
+extension Identity.Configuration.FederatedLogin.Provider.Name {
+    static let google = Self(rawValue: "google")
+    static let github = Self(rawValue: "github")
 }

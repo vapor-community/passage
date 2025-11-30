@@ -15,17 +15,20 @@ extension Identity {
         let random: any RandomGenerator
         let emailDelivery: (any EmailDelivery)?
         let phoneDelivery: (any PhoneDelivery)?
+        let federatedLogin: (any FederatedLoginService)?
 
         init(
             store: any Store,
             random: any RandomGenerator = DefaultRandomGenerator(),
             emailDelivery: (any EmailDelivery)?,
             phoneDelivery: (any PhoneDelivery)?,
+            federatedLogin: (any FederatedLoginService)? = nil
         ) {
             self.store = store
             self.random = random
             self.emailDelivery = emailDelivery
             self.phoneDelivery = phoneDelivery
+            self.federatedLogin = federatedLogin
         }
     }
 
@@ -171,4 +174,4 @@ struct DefaultRandomGenerator: Identity.RandomGenerator {
     }
 }
 
-
+// MARK: - Federated Login

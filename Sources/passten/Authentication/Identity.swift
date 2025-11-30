@@ -49,6 +49,11 @@ struct Identity: Sendable {
             app.queues.add(Verification.SendEmailCodeJob())
             app.queues.add(Verification.SendPhoneCodeJob())
         }
+
+        try oauth.register(
+            group: configuration.routes.group,
+            config: configuration.oauth
+        )
     }
 
 }
