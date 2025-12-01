@@ -1,10 +1,3 @@
-//
-//  Identity+RestorationJobs.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 12/01/25.
-//
-
 import Vapor
 import Queues
 

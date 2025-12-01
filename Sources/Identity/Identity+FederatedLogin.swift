@@ -1,10 +1,3 @@
-//
-//  Identity+OAuth.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/30/25.
-//
-
 import Vapor
 
 extension Identity {
@@ -47,7 +40,7 @@ extension Identity.FederatedLogin {
 
 // MARK: - Federated Login Service
 
-extension Identity {
+public extension Identity {
 
     protocol FederatedLoginService: Sendable {
 

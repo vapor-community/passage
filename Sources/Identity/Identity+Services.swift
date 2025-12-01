@@ -1,14 +1,7 @@
-//
-//  Identity+Services.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/28/25.
-//
-
 import Foundation
 import CryptoKit
 
-extension Identity {
+public extension Identity {
 
     struct Services: Sendable {
         let store: any Store
@@ -17,7 +10,7 @@ extension Identity {
         let phoneDelivery: (any PhoneDelivery)?
         let federatedLogin: (any FederatedLoginService)?
 
-        init(
+        public init(
             store: any Store,
             random: any RandomGenerator = DefaultRandomGenerator(),
             emailDelivery: (any EmailDelivery)?,
@@ -55,7 +48,7 @@ extension Identity {
 
 // MARK: - Store
 
-extension Identity {
+public extension Identity {
 
     protocol Store: Sendable {
         var users: any UserStore { get }
@@ -196,32 +189,36 @@ extension Identity {
 
 // MARK: - Random
 
-extension Identity {
+public extension Identity {
     protocol RandomGenerator: Sendable {
         func generateRandomString(count: Int) -> String
         func generateOpaqueToken() -> String
         func hashOpaqueToken(token: String) -> String
         func generateVerificationCode(length: Int) -> String
     }
+
+    public struct DefaultRandomGenerator: Identity.RandomGenerator {
+        public init() {
+
+        }
+        public func generateRandomString(count: Int) -> String {
+            Data([UInt8].random(count: count)).base64EncodedString()
+        }
+        public func generateOpaqueToken() -> String {
+            generateRandomString(count: 32)
+        }
+        public func hashOpaqueToken(token: String) -> String {
+            SHA256.hash(data: Data(token.utf8))
+                .compactMap { String(format: "%02x", $0) }
+                .joined()
+        }
+        public func generateVerificationCode(length: Int) -> String {
+            // Alphanumeric characters excluding confusing ones (0/O, 1/I/L)
+            let characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+            return String((0..<length).map { _ in characters.randomElement()! })
+        }
+    }
 }
 
-struct DefaultRandomGenerator: Identity.RandomGenerator {
-    func generateRandomString(count: Int) -> String {
-        Data([UInt8].random(count: count)).base64EncodedString()
-    }
-    func generateOpaqueToken() -> String {
-        generateRandomString(count: 32)
-    }
-    func hashOpaqueToken(token: String) -> String {
-        SHA256.hash(data: Data(token.utf8))
-            .compactMap { String(format: "%02x", $0) }
-            .joined()
-    }
-    func generateVerificationCode(length: Int) -> String {
-        // Alphanumeric characters excluding confusing ones (0/O, 1/I/L)
-        let characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-        return String((0..<length).map { _ in characters.randomElement()! })
-    }
-}
 
 // MARK: - Federated Login

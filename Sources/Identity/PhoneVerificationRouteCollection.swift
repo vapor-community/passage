@@ -1,10 +1,3 @@
-//
-//  PhoneVerificationRouteCollection.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/28/25.
-//
-
 import Vapor
 
 struct PhoneVerificationRouteCollection: RouteCollection {

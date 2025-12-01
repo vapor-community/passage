@@ -1,13 +1,7 @@
-//
-//  Identity.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/6/25.
-//
-
 import Vapor
+import JWT
 
-struct Identity: Sendable {
+public struct Identity: Sendable {
 
     init(app: Application) {
         self.app = app
@@ -17,7 +11,7 @@ struct Identity: Sendable {
 
     // MARK: - Configuration
 
-    func configure(
+    public func configure(
         services: Services,
         configuration: Configuration,
     ) async throws {

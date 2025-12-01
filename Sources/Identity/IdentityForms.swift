@@ -1,10 +1,3 @@
-//
-//  IdentityForms.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/25/25.
-//
-
 import Vapor
 
 // MARK: - Register Form

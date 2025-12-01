@@ -1,15 +1,8 @@
-//
-//  IdentityError.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/26/25.
-//
-
 import Vapor
 
 // MARK: - Identity Errors
 
-enum IdentityError: Error {
+public enum IdentityError: Error {
     case notConfigured
     case storeNotConfigured
     case jwksNotConfigured
@@ -20,7 +13,7 @@ enum IdentityError: Error {
 }
 
 extension IdentityError: AbortError {
-    var status: HTTPResponseStatus {
+    public var status: HTTPResponseStatus {
         switch self {
         case .notConfigured, .storeNotConfigured, .jwksNotConfigured, .emailDeliveryNotConfigured, .phoneDeliveryNotConfigured, .unexpected:
             return .internalServerError
@@ -29,7 +22,7 @@ extension IdentityError: AbortError {
         }
     }
 
-    var reason: String {
+    public var reason: String {
         switch self {
         case .notConfigured:
             return "Identity is not configured. Call app.identity.configure() during application setup."
@@ -51,7 +44,7 @@ extension IdentityError: AbortError {
 
 // MARK: - Authentication Errors
 
-enum AuthenticationError: Error {
+public enum AuthenticationError: Error {
     // Registration errors
     case identifierNotSpecified
     case emailAlreadyRegistered
@@ -96,7 +89,7 @@ enum AuthenticationError: Error {
 }
 
 extension AuthenticationError: AbortError {
-    var status: HTTPResponseStatus {
+    public var status: HTTPResponseStatus {
         switch self {
         case .identifierNotSpecified, .passwordsDoNotMatch:
             return .badRequest
@@ -131,7 +124,7 @@ extension AuthenticationError: AbortError {
         }
     }
 
-    var reason: String {
+    public var reason: String {
         switch self {
         case .identifierNotSpecified:
             return "No identifier (email, phone, or username) was specified."

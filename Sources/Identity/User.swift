@@ -1,15 +1,8 @@
-//
-//  User.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/25/25.
-//
-
 import Vapor
 
 // MARK: - User
 
-protocol User: Authenticatable, Sendable {
+public protocol User: Authenticatable, Sendable {
     associatedtype Id: CustomStringConvertible, Codable, Hashable, Sendable
 
     var id: Id? { get }

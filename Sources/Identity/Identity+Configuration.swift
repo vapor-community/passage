@@ -1,16 +1,9 @@
-//
-//  Identity+Config.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/28/25.
-//
-
 import Foundation
 import Vapor
 
-extension Identity {
+public extension Identity {
 
-    struct Configuration {
+    public struct Configuration: Sendable {
         let origin: URL
         let routes: Routes
         let tokens: Tokens
@@ -19,7 +12,7 @@ extension Identity {
         let restoration: Restoration
         let oauth: FederatedLogin
 
-        init(
+        public init(
             origin: URL,
             routes: Routes = .init(),
             tokens: Tokens = .init(),
@@ -43,43 +36,43 @@ extension Identity {
 // MARK: - Routes
 
 extension Identity.Configuration {
-    struct Routes: Sendable {
-        struct Register {
-            static let `default` = Register(path: "register")
+    public struct Routes: Sendable {
+        public struct Register: Sendable {
+            public static let `default` = Register(path: "register")
             let path: [PathComponent]
-            init(path: PathComponent...) {
+            public init(path: PathComponent...) {
                 self.path = path
             }
         }
 
-        struct Login {
-            static let `default` = Login(path: "login")
+        public struct Login: Sendable {
+            public static let `default` = Login(path: "login")
             let path: [PathComponent]
-            init(path: PathComponent...) {
+            public init(path: PathComponent...) {
                 self.path = path
             }
         }
 
-        struct Logout {
-            static let `default` = Logout(path: "logout")
+        public struct Logout: Sendable {
+            public static let `default` = Logout(path: "logout")
             let path: [PathComponent]
-            init(path: PathComponent...) {
+            public init(path: PathComponent...) {
                 self.path = path
             }
         }
 
-        struct RefreshToken {
-            static let `default` = RefreshToken(path: "refresh-token")
+        public struct RefreshToken: Sendable {
+            public static let `default` = RefreshToken(path: "refresh-token")
             let path: [PathComponent]
-            init(path: PathComponent...) {
+            public init(path: PathComponent...) {
                 self.path = path
             }
         }
 
-        struct CurrentUser {
-            static let `default` = CurrentUser(path: "me")
+        public struct CurrentUser: Sendable {
+            public static let `default` = CurrentUser(path: "me")
             let path: [PathComponent]
-            init(path: PathComponent...) {
+            public init(path: PathComponent...) {
                 self.path = path
             }
         }
@@ -100,7 +93,7 @@ extension Identity.Configuration {
             self.currentUser = currentUser
         }
 
-        init(
+        public init(
             group: PathComponent...,
             register: Register         = .default,
             login: Login               = .default,
@@ -118,7 +111,7 @@ extension Identity.Configuration {
             )
         }
 
-        init(
+        public init(
             register: Register         = .default,
             login: Login               = .default,
             logout: Logout             = .default,
@@ -148,18 +141,27 @@ extension Identity.Configuration {
 
 extension Identity.Configuration {
 
-    struct Tokens: Sendable {
+    public struct Tokens: Sendable {
 
-        struct IdToken: Sendable {
+        public struct IdToken: Sendable {
             let timeToLive: TimeInterval
+            public init(timeToLive: TimeInterval) {
+                self.timeToLive = timeToLive
+            }
         }
 
-        struct AccessToken: Sendable {
+        public struct AccessToken: Sendable {
             let timeToLive: TimeInterval
+            public init(timeToLive: TimeInterval) {
+                self.timeToLive = timeToLive
+            }
         }
 
-        struct RefreshToken: Sendable {
+        public struct RefreshToken: Sendable {
             let timeToLive: TimeInterval
+            public init(timeToLive: TimeInterval) {
+                self.timeToLive = timeToLive
+            }
         }
 
         let issuer: String?
@@ -168,7 +170,7 @@ extension Identity.Configuration {
         let accessToken: AccessToken
         let refreshToken: RefreshToken
 
-        init(
+        public init(
             issuer: String? = nil,
             idToken: IdToken = .init(timeToLive: 1 * 3600),
             accessToken: AccessToken = .init(timeToLive: 15 * 60),
@@ -185,19 +187,26 @@ extension Identity.Configuration {
 
 // MARK: - JWKS
 
-extension Identity.Configuration {
+public extension Identity.Configuration {
 
-    struct JWT: Sendable {
-        struct JWKS: Sendable {
+    public struct JWT: Sendable {
+        public struct JWKS: Sendable {
             let json: String
+            public init(json: String) {
+                self.json = json
+            }
         }
 
         let jwks: JWKS
+
+        public init(jwks: JWKS) {
+            self.jwks = jwks
+        }
     }
 
 }
 
-extension Identity.Configuration.JWT.JWKS {
+public extension Identity.Configuration.JWT.JWKS {
 
     static func environment(name: String = "JWKS") throws -> Self {
         guard let json = ProcessInfo.processInfo.environment[name] else {
@@ -224,13 +233,13 @@ extension Identity.Configuration.JWT.JWKS {
 
 extension Identity.Configuration {
 
-    struct Verification: Sendable {
+    public struct Verification: Sendable {
 
         let email: Email
         let phone: Phone
         let useQueues: Bool
 
-        init(
+        public init(
             email: Email = .init(),
             phone: Phone = .init(),
             useQueues: Bool = false
@@ -247,7 +256,7 @@ extension Identity.Configuration {
 
 extension Identity.Configuration.Verification {
 
-    struct Email: Sendable {
+    public struct Email: Sendable {
         let routes: Routes
         let codeLength: Int
         let codeExpiration: TimeInterval
@@ -255,20 +264,20 @@ extension Identity.Configuration.Verification {
 
         // MARK: - Routes
 
-        struct Routes: Sendable {
+        public struct Routes: Sendable {
 
-            struct Verify: Sendable {
-                static let `default` = Verify(path: "email", "verify")
+            public struct Verify: Sendable {
+                public static let `default` = Verify(path: "email", "verify")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
 
-            struct Resend: Sendable {
-                static let `default` = Resend(path: "email", "resend")
+            public struct Resend: Sendable {
+                public static let `default` = Resend(path: "email", "resend")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
@@ -276,7 +285,7 @@ extension Identity.Configuration.Verification {
             let verify: Verify
             let resend: Resend
 
-            init(
+            public init(
                 verify: Verify = .default,
                 resend: Resend = .default
             ) {
@@ -285,7 +294,7 @@ extension Identity.Configuration.Verification {
             }
         }
 
-        init(
+        public init(
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 15 * 60,
@@ -312,33 +321,33 @@ extension Identity.Configuration {
 
 extension Identity.Configuration.Verification {
 
-    struct Phone: Sendable {
+    public struct Phone: Sendable {
         let routes: Routes
         let codeLength: Int
         let codeExpiration: TimeInterval
         let maxAttempts: Int
 
-        struct Routes: Sendable {
-            struct SendCode: Sendable {
-                static let `default` = SendCode(path: "phone", "send-code")
+        public struct Routes: Sendable {
+            public struct SendCode: Sendable {
+                public static let `default` = SendCode(path: "phone", "send-code")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
 
-            struct Verify: Sendable {
-                static let `default` = Verify(path: "phone", "verify")
+            public struct Verify: Sendable {
+                public static let `default` = Verify(path: "phone", "verify")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
 
-            struct Resend: Sendable {
-                static let `default` = Resend(path: "phone", "resend")
+            public struct Resend: Sendable {
+                public static let `default` = Resend(path: "phone", "resend")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
@@ -347,7 +356,7 @@ extension Identity.Configuration.Verification {
             let verify: Verify
             let resend: Resend
 
-            init(
+            public init(
                 sendCode: SendCode = .default,
                 verify: Verify = .default,
                 resend: Resend = .default
@@ -358,7 +367,7 @@ extension Identity.Configuration.Verification {
             }
         }
 
-        init(
+        public init(
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 5 * 60,  // 5 minutes for SMS
@@ -385,10 +394,10 @@ extension Identity.Configuration {
 
 extension Identity.Configuration {
 
-    struct Restoration: Sendable {
+    public struct Restoration: Sendable {
 
         /// Preferred delivery channel for password reset when user is looked up by username
-        enum PreferredDelivery: Sendable {
+        public enum PreferredDelivery: Sendable {
             case email
             case phone
         }
@@ -398,7 +407,7 @@ extension Identity.Configuration {
         let phone: Phone
         let useQueues: Bool
 
-        init(
+        public init(
             preferredDelivery: PreferredDelivery = .email,
             email: Email = .init(),
             phone: Phone = .init(),
@@ -417,36 +426,30 @@ extension Identity.Configuration {
 
 extension Identity.Configuration.Restoration {
 
-    struct Email: Sendable {
-        let routes: Routes
-        let codeLength: Int
-        let codeExpiration: TimeInterval
-        let maxAttempts: Int
-        let resetLinkBaseURL: URL?
-        let webForm: WebForm
+    public struct Email: Sendable {
 
-        struct Routes: Sendable {
+        public struct Routes: Sendable {
 
-            struct Request: Sendable {
-                static let `default` = Request(path: "password", "reset", "email")
+            public struct Request: Sendable {
+                public static let `default` = Request(path: "password", "reset", "email")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
 
-            struct Verify: Sendable {
-                static let `default` = Verify(path: "password", "reset", "email", "verify")
+            public struct Verify: Sendable {
+                public static let `default` = Verify(path: "password", "reset", "email", "verify")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
 
-            struct Resend: Sendable {
-                static let `default` = Resend(path: "password", "reset", "email", "resend")
+            public struct Resend: Sendable {
+                public static let `default` = Resend(path: "password", "reset", "email", "resend")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
@@ -455,7 +458,7 @@ extension Identity.Configuration.Restoration {
             let verify: Verify
             let resend: Resend
 
-            init(
+            public init(
                 request: Request = .default,
                 verify: Verify = .default,
                 resend: Resend = .default
@@ -466,29 +469,30 @@ extension Identity.Configuration.Restoration {
             }
         }
 
-        struct WebForm: Sendable {
-            let enabled: Bool
-            let template: String
-            let route: Route
+        public struct WebForm: Sendable {
 
-            struct Route: Sendable {
-                static let `default` = Route(path: "password", "reset")
+            public struct Route: Sendable {
+                public static let `default` = Route(path: "password", "reset")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
-                init(path: [PathComponent]) {
+                public init(path: [PathComponent]) {
                     self.path = path
                 }
             }
 
-            static let `default` = WebForm(
+            public static let `default` = WebForm(
                 enabled: true,
                 template: "password-reset-form",
                 route: .default
             )
 
-            init(
+            let enabled: Bool
+            let template: String
+            let route: Route
+
+            public init(
                 enabled: Bool = true,
                 template: String = "password-reset-form",
                 route: Route = .default
@@ -499,7 +503,14 @@ extension Identity.Configuration.Restoration {
             }
         }
 
-        init(
+        let routes: Routes
+        let codeLength: Int
+        let codeExpiration: TimeInterval
+        let maxAttempts: Int
+        let resetLinkBaseURL: URL?
+        let webForm: WebForm
+
+        public init(
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 15 * 60,  // 15 minutes
@@ -553,34 +564,34 @@ extension Identity.Configuration {
 
 extension Identity.Configuration.Restoration {
 
-    struct Phone: Sendable {
+    public struct Phone: Sendable {
         let routes: Routes
         let codeLength: Int
         let codeExpiration: TimeInterval
         let maxAttempts: Int
 
-        struct Routes: Sendable {
+        public struct Routes: Sendable {
 
-            struct Request: Sendable {
-                static let `default` = Request(path: "password", "reset", "phone")
+            public struct Request: Sendable {
+                public static let `default` = Request(path: "password", "reset", "phone")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
 
-            struct Verify: Sendable {
-                static let `default` = Verify(path: "password", "reset", "phone", "verify")
+            public struct Verify: Sendable {
+                public static let `default` = Verify(path: "password", "reset", "phone", "verify")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
 
-            struct Resend: Sendable {
-                static let `default` = Resend(path: "password", "reset", "phone", "resend")
+            public struct Resend: Sendable {
+                public static let `default` = Resend(path: "password", "reset", "phone", "resend")
                 let path: [PathComponent]
-                init(path: PathComponent...) {
+                public init(path: PathComponent...) {
                     self.path = path
                 }
             }
@@ -589,7 +600,7 @@ extension Identity.Configuration.Restoration {
             let verify: Verify
             let resend: Resend
 
-            init(
+            public init(
                 request: Request = .default,
                 verify: Verify = .default,
                 resend: Resend = .default
@@ -600,7 +611,7 @@ extension Identity.Configuration.Restoration {
             }
         }
 
-        init(
+        public init(
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 5 * 60,  // 5 minutes for SMS
@@ -625,32 +636,35 @@ extension Identity.Configuration {
 
 // MARK: - Federated Login
 
-extension Identity.Configuration {
+public extension Identity.Configuration {
 
-    struct FederatedLogin: Sendable {
-        struct Routes: Sendable {
+    public struct FederatedLogin: Sendable {
+        public struct Routes: Sendable {
             let group: [PathComponent]
 
-            init(group: PathComponent...) {
+            public init(group: PathComponent...) {
                 self.group = group
             }
 
-            init() {
+            public init() {
                 self.group = ["oauth"]
             }
         }
 
-        struct Provider: Sendable {
-            struct Name: Sendable, Codable, Hashable, RawRepresentable {
-                let rawValue: String
+        public struct Provider: Sendable {
+            public struct Name: Sendable, Codable, Hashable, RawRepresentable {
+                public let rawValue: String
+                public init(rawValue: String) {
+                    self.rawValue = rawValue
+                }
             }
 
-            enum Credentials: Sendable {
+            public enum Credentials: Sendable {
                 case conventional
                 case client(id: String, secret: String)
             }
 
-            struct Routes: Sendable {
+            public struct Routes: Sendable {
                 struct Login: Sendable {
                     let path: [PathComponent]
                     init(path: PathComponent...) {
@@ -683,10 +697,10 @@ extension Identity.Configuration {
                 }
             }
 
-            let name: Name
-            let credentials: Credentials
-            let scope: [String]
-            let routes: Routes
+            public let name: Name
+            public let credentials: Credentials
+            public let scope: [String]
+            public let routes: Routes
 
             init(
                 name: Name,
@@ -705,11 +719,11 @@ extension Identity.Configuration {
             }
         }
 
-        let routes: Routes
-        let providers: [Provider]
-        let redirectLocation: String
+        public let routes: Routes
+        public let providers: [Provider]
+        public let redirectLocation: String
 
-        init(
+        public init(
             routes: Routes = .init(),
             providers: [Provider],
             redirectLocation: String = "/"
@@ -722,7 +736,7 @@ extension Identity.Configuration {
 
 }
 
-extension Identity.Configuration.FederatedLogin {
+public extension Identity.Configuration.FederatedLogin {
     func loginPath(for provider: Identity.Configuration.FederatedLogin.Provider) -> [PathComponent] {
         return routes.group + provider.routes.login.path
     }
@@ -731,7 +745,7 @@ extension Identity.Configuration.FederatedLogin {
     }
 }
 
-extension Identity.Configuration.FederatedLogin.Provider {
+public extension Identity.Configuration.FederatedLogin.Provider {
 
     static func google(
         credentials: Credentials = .conventional,
@@ -774,7 +788,7 @@ extension Identity.Configuration.FederatedLogin.Provider {
     }
 }
 
-extension Identity.Configuration.FederatedLogin.Provider.Name {
+public extension Identity.Configuration.FederatedLogin.Provider.Name {
     static let google = named("google")
     static let github = named("github")
 

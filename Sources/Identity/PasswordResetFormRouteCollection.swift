@@ -1,16 +1,9 @@
-//
-//  PasswordResetFormRouteCollection.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 12/01/25.
-//
-
 import Vapor
 import Leaf
 
 /// Route collection that serves a web form for password reset.
 /// This provides a default UI for users clicking reset links in emails.
-struct PasswordResetFormRouteCollection: RouteCollection {
+struct PasswordResetFormRouteCollection: RouteCollection, Sendable {
 
     let config: Identity.Configuration
     let groupPath: [PathComponent]

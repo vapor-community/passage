@@ -1,26 +1,19 @@
-//
-//  Identifier.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/26/25.
-//
+public struct Identifier {
 
-struct Identifier {
-
-    enum Kind: String, Codable {
+    public enum Kind: String, Codable {
         case email
         case phone
         case username
     }
 
-    let kind: Kind
-    let value: String
+    public let kind: Kind
+    public let value: String
 
 }
 
 // MARK: Error Support
 
-extension Identifier {
+public extension Identifier {
 
     var errorWhenIdentifierAlreadyRegistered: AuthenticationError {
         return kind.errorWhenIdentifierAlreadyRegistered
@@ -31,7 +24,7 @@ extension Identifier {
     }
 }
 
-extension Identifier.Kind {
+public extension Identifier.Kind {
 
     var errorWhenIdentifierAlreadyRegistered: AuthenticationError {
         switch self {

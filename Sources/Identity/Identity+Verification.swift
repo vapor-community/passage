@@ -1,15 +1,8 @@
-//
-//  Identity+Verification.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/28/25.
-//
-
 import Foundation
 
 // MARK: - Verification Namespace
 
-extension Identity {
+public extension Identity {
 
     /// Core service for orchestrating verification flows.
     /// Supports both synchronous delivery and async via Vapor Queues.
@@ -53,7 +46,7 @@ extension Request {
 
 // MARK: - Email Delivery Protocol
 
-extension Identity {
+public extension Identity {
 
     /// Protocol for sending verification emails.
     /// Implementations handle template selection and delivery.
@@ -92,7 +85,7 @@ extension Identity {
 
 // MARK: - Phone Delivery Protocol
 
-extension Identity {
+public extension Identity {
 
     /// Protocol for sending verification SMS/calls.
     /// Implementations handle message formatting and delivery.
@@ -123,7 +116,7 @@ extension Identity {
 
 // MARK: - Verification Code Protocols
 
-extension Identity.Verification {
+public extension Identity.Verification {
 
     /// Base protocol for verification codes with common properties
     protocol Code: Sendable {

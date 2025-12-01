@@ -1,16 +1,9 @@
-//
-//  AuthenticationCredentials.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/26/25.
-//
-
-enum Credential {
+public enum Credential {
     case email(email: String, passwordHash: String)
     case phone(phone: String, passwordHash: String)
     case username(username: String, passwordHash: String)
 
-    var identifier: Identifier {
+    public var identifier: Identifier {
         return .init(kind: identifierKind, value: identifierValue)
     }
 
@@ -33,7 +26,7 @@ enum Credential {
         }
     }
 
-    var passwordHash: String {
+    public var passwordHash: String {
         switch self {
         case .email(email: _, passwordHash: let passwordHash):
             return passwordHash
@@ -45,7 +38,7 @@ enum Credential {
     }
 }
 
-extension Credential {
+public extension Credential {
 
     var errorWhenIdentifierAlreadyRegistered: AuthenticationError {
         switch self {

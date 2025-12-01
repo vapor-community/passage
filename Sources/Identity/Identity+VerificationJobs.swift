@@ -1,10 +1,3 @@
-//
-//  Identity+VerificationJobs.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/28/25.
-//
-
 import Vapor
 import Queues
 

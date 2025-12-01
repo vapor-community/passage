@@ -1,10 +1,3 @@
-//
-//  IdentityProvider.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/28/25.
-//
-
 import Vapor
 
 // MARK: - Storage
@@ -59,7 +52,7 @@ extension Identity {
 
 // MARK: - Application Support
 
-extension Application {
+public extension Application {
 
     var identity: Identity {
         Identity(app: self)

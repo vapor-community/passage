@@ -1,10 +1,3 @@
-//
-//  EmailRestorationRouteCollection.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 12/01/25.
-//
-
 import Vapor
 
 struct EmailRestorationRouteCollection: RouteCollection {

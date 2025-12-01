@@ -1,4 +1,4 @@
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 import PackageDescription
 
 let package = Package(
@@ -10,10 +10,10 @@ let package = Package(
         .library(name: "Identity", targets: ["Identity"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/vapor/vapor.git", from: "4.89.0"),
-        .package(url: "https://github.com/vapor/jwt.git", from: "4.0.0"),
-        .package(url: "https://github.com/vapor/leaf.git", from: "4.0.0"),
-        .package(url: "https://github.com/vapor/queues.git", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/vapor.git", from: "4.119.2"),
+        .package(url: "https://github.com/vapor/jwt.git", from: "5.1.2"),
+        .package(url: "https://github.com/vapor/leaf.git", from: "4.5.1"),
+        .package(url: "https://github.com/vapor/queues.git", from: "1.17.2"),
     ],
     targets: [
         .target(
@@ -25,7 +25,6 @@ let package = Package(
                 .product(name: "Queues", package: "queues"),
             ],
             resources: [
-                .copy("Resources/EmailTemplates"),
                 .copy("Resources/Views"),
             ]
         ),

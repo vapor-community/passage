@@ -1,16 +1,9 @@
-//
-//  Identity+Restoration.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 12/01/25.
-//
-
 import Foundation
 import Vapor
 
 // MARK: - Restoration Namespace
 
-extension Identity {
+public extension Identity {
 
     /// Core service for orchestrating password reset flows.
     /// Supports both synchronous delivery and async via Vapor Queues.
@@ -53,7 +46,7 @@ extension Request {
 
 // MARK: - Reset Code Protocols
 
-extension Identity.Restoration {
+public extension Identity.Restoration {
 
     /// Base protocol for password reset codes with common properties
     protocol Code: Sendable {
@@ -77,7 +70,7 @@ extension Identity.Restoration {
 
 }
 
-extension Identity.Restoration.Code {
+public extension Identity.Restoration.Code {
 
     var isExpired: Bool {
         Date() > expiresAt

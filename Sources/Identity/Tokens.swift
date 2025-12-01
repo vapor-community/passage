@@ -1,17 +1,10 @@
-//
-//  Tokens.swift
-//  passten
-//
-//  Created by Max Rozdobudko on 11/27/25.
-//
-
 import Vapor
 import JWTKit
 
 // MARK: - ID Token
 
 // TODO: For future usage
-struct IdToken: UserInfo, Sendable {
+public struct IdToken: UserInfo, Sendable {
 
     // Standard claims
     let subject: SubjectClaim
@@ -37,14 +30,14 @@ extension IdToken: JWTPayload {
         case phone
     }
 
-    func verify(using algorithm: some JWTAlgorithm) async throws {
+    public func verify(using algorithm: some JWTAlgorithm) async throws {
         try expiration.verifyNotExpired()
     }
 }
 
 // MARK: - Access Token
 
-struct AccessToken: Sendable {
+public struct AccessToken: Sendable {
 
     // Standard claims
     let subject: SubjectClaim
@@ -83,14 +76,14 @@ extension AccessToken: JWTPayload {
         case scope
     }
 
-    func verify(using algorithm: some JWTAlgorithm) async throws {
+    public func verify(using algorithm: some JWTAlgorithm) async throws {
         try expiration.verifyNotExpired()
     }
 }
 
 // MARK: - Refresh Token
 
-protocol RefreshToken: Sendable {
+public protocol RefreshToken: Sendable {
     associatedtype Id: CustomStringConvertible, Codable, Hashable, Sendable
     associatedtype AssociatedUser: User
 
@@ -107,7 +100,7 @@ protocol RefreshToken: Sendable {
     var replacedBy: Id? { get }
 }
 
-extension RefreshToken {
+public extension RefreshToken {
 
     var isExpired: Bool {
         expiresAt < .now
