@@ -14,15 +14,18 @@ extension Identity {
         let app: Application
 
         func register(
-            group: [PathComponent],
-            config: Identity.Configuration.FederatedLogin,
+            config: Identity.Configuration,
         ) throws {
             try service?.register(
                 router: app,
-                group: group,
-                config: config,
-            ) { provider, request, payload in
-                request.redirect(to: "/")
+                origin: config.origin,
+                group: config.routes.group,
+                config: config.oauth,
+            ) { provider, request, tokens in
+                print(">>> \(tokens)")
+                // TODO: Entry Point for handling federated login callback
+                // merge or create user, issue Identity access token, etc.
+                return request.redirect(to: config.oauth.redirectLocation)
             }
         }
     }
@@ -50,6 +53,7 @@ extension Identity {
 
         func register(
             router: any RoutesBuilder,
+            origin: URL,
             group: [PathComponent],
             config: Identity.Configuration.FederatedLogin,
             completion: @escaping @Sendable (

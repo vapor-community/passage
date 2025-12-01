@@ -11,7 +11,7 @@ import Vapor
 extension Identity {
 
     struct Configuration {
-        let baseURL: URL
+        let origin: URL
         let routes: Routes
         let tokens: Tokens
         let jwt: JWT
@@ -19,14 +19,14 @@ extension Identity {
         let oauth: FederatedLogin
 
         init(
-            baseURL: URL,
+            origin: URL,
             routes: Routes = .init(),
             tokens: Tokens = .init(),
             jwt: JWT? = nil,
             verification: Verification = .init(),
             oauth: FederatedLogin = .init(routes: .init(), providers: [])
         ) throws {
-            self.baseURL = baseURL
+            self.origin = origin
             self.routes = routes
             self.tokens = tokens
             self.jwt = try jwt ?? JWT(jwks: try .fileFromEnvironment())
@@ -300,7 +300,7 @@ extension Identity.Configuration.Verification {
 extension Identity.Configuration {
 
     var emailVerificationURL: URL {
-        baseURL.appending(path: (routes.group + verification.email.routes.verify.path).string)
+        origin.appending(path: (routes.group + verification.email.routes.verify.path).string)
     }
 
 }
@@ -373,7 +373,7 @@ extension Identity.Configuration.Verification {
 extension Identity.Configuration {
 
     var phoneVerificationURL: URL {
-        baseURL.appending(path: (routes.group + verification.phone.routes.verify.path).string)
+        origin.appending(path: (routes.group + verification.phone.routes.verify.path).string)
     }
 
 }
@@ -439,16 +439,19 @@ extension Identity.Configuration {
             }
 
             let name: Name
-            let routes: Routes
             let credentials: Credentials
+            let scope: [String]
+            let routes: Routes
 
             init(
                 name: Name,
                 credentials: Credentials = .conventional,
+                scope: [String] = [],
                 routes: Routes? = nil,
             ) {
                 self.name = name
                 self.credentials = credentials
+                self.scope = scope
                 self.routes = routes ?? .init(
                     login: .init(path: name.rawValue.pathComponents),
                     callback: .init(path: name.rawValue.pathComponents + ["callback"])
@@ -459,13 +462,16 @@ extension Identity.Configuration {
 
         let routes: Routes
         let providers: [Provider]
+        let redirectLocation: String
 
         init(
             routes: Routes = .init(),
             providers: [Provider],
+            redirectLocation: String = "/"
         ) {
             self.routes = routes
             self.providers = providers
+            self.redirectLocation = redirectLocation
         }
     }
 
@@ -484,22 +490,26 @@ extension Identity.Configuration.FederatedLogin.Provider {
 
     static func google(
         credentials: Credentials = .conventional,
+        scope: [String] = [],
         routes: Routes? = nil,
     ) -> Self {
         .init(
             name: .google,
             credentials: credentials,
+            scope: scope,
             routes: routes,
         )
     }
 
     static func github(
         credentials: Credentials = .conventional,
+        scope: [String] = [],
         routes: Routes? = nil,
     ) -> Self {
         .init(
             name: .github,
             credentials: credentials,
+            scope: scope,
             routes: routes,
         )
     }
@@ -507,17 +517,23 @@ extension Identity.Configuration.FederatedLogin.Provider {
     static func custom(
         name: String,
         credentials: Credentials = .conventional,
+        scope: [String] = [],
         routes: Routes? = nil,
     ) -> Self {
         .init(
             name: .init(rawValue: name),
             credentials: credentials,
+            scope: scope,
             routes: routes,
         )
     }
 }
 
 extension Identity.Configuration.FederatedLogin.Provider.Name {
-    static let google = Self(rawValue: "google")
-    static let github = Self(rawValue: "github")
+    static let google = named("google")
+    static let github = named("github")
+
+    static func named(_ name: String) -> Self {
+        return Self(rawValue: name)
+    }
 }
