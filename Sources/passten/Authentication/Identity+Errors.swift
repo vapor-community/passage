@@ -24,7 +24,7 @@ extension IdentityError: AbortError {
         switch self {
         case .notConfigured, .storeNotConfigured, .jwksNotConfigured, .emailDeliveryNotConfigured, .phoneDeliveryNotConfigured, .unexpected:
             return .internalServerError
-        case .missingEnvironmentVariable(name: let name):
+        case .missingEnvironmentVariable(name: _):
             return .internalServerError
         }
     }
@@ -86,6 +86,13 @@ enum AuthenticationError: Error {
     // Shared verification errors
     case invalidVerificationCode
     case verificationCodeExpiredOrMaxAttempts
+
+    // Restoration (password reset) errors
+    case restorationCodeInvalid
+    case restorationCodeExpired
+    case restorationCodeMaxAttempts
+    case restorationIdentifierNotFound
+    case restorationDeliveryNotAvailable
 }
 
 extension AuthenticationError: AbortError {
@@ -113,6 +120,14 @@ extension AuthenticationError: AbortError {
             return .unauthorized
         case .verificationCodeExpiredOrMaxAttempts:
             return .gone
+        case .restorationCodeInvalid:
+            return .unauthorized
+        case .restorationCodeExpired, .restorationCodeMaxAttempts:
+            return .gone
+        case .restorationIdentifierNotFound:
+            return .notFound
+        case .restorationDeliveryNotAvailable:
+            return .serviceUnavailable
         }
     }
 
@@ -160,6 +175,16 @@ extension AuthenticationError: AbortError {
             return "Invalid verification code."
         case .verificationCodeExpiredOrMaxAttempts:
             return "Verification code has expired or maximum attempts exceeded."
+        case .restorationCodeInvalid:
+            return "Invalid password reset code."
+        case .restorationCodeExpired:
+            return "Password reset code has expired."
+        case .restorationCodeMaxAttempts:
+            return "Maximum password reset attempts exceeded."
+        case .restorationIdentifierNotFound:
+            return "No account found with this identifier."
+        case .restorationDeliveryNotAvailable:
+            return "Password reset delivery is not available for this identifier type."
         }
     }
 }

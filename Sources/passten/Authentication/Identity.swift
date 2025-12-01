@@ -28,18 +28,35 @@ struct Identity: Sendable {
 
         try app.register(collection: IdentityRouteCollection(routes: configuration.routes))
 
-        // Register email verification routes if delivery is provided
         if let _ = services.emailDelivery {
+            // Register email verification routes if delivery is provided
             try app.register(collection: EmailVerificationRouteCollection(
                 config: configuration.verification.email,
                 groupPath: configuration.routes.group
             ))
+            // Register email password reset routes if delivery is provided
+            try app.register(collection: EmailRestorationRouteCollection(
+                config: configuration.restoration.email,
+                groupPath: configuration.routes.group
+            ))
+            // Register password reset web form if enabled
+            if configuration.restoration.email.webForm.enabled {
+                try app.register(collection: PasswordResetFormRouteCollection(
+                    config: configuration,
+                    groupPath: configuration.routes.group
+                ))
+            }
         }
 
-        // Register phone verification routes if delivery is provided
         if let _ = services.phoneDelivery {
+            // Register phone verification routes if delivery is provided
             try app.register(collection: PhoneVerificationRouteCollection(
                 config: configuration.verification.phone,
+                groupPath: configuration.routes.group
+            ))
+            // Register phone password reset routes if delivery is provided
+            try app.register(collection: PhoneRestorationRouteCollection(
+                config: configuration.restoration.phone,
                 groupPath: configuration.routes.group
             ))
         }
@@ -48,6 +65,12 @@ struct Identity: Sendable {
         if configuration.verification.useQueues {
             app.queues.add(Verification.SendEmailCodeJob())
             app.queues.add(Verification.SendPhoneCodeJob())
+        }
+
+        // Register restoration jobs if queues are enabled
+        if configuration.restoration.useQueues {
+            app.queues.add(Restoration.SendEmailResetCodeJob())
+            app.queues.add(Restoration.SendPhoneResetCodeJob())
         }
 
         try oauth.register(config: configuration)

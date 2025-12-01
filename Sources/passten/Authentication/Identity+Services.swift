@@ -61,6 +61,7 @@ extension Identity {
         var users: any UserStore { get }
         var tokens: any TokenStore { get }
         var codes: any CodeStore { get }
+        var resetCodes: any ResetCodeStore { get }
     }
 
     protocol UserStore: Sendable {
@@ -70,6 +71,7 @@ extension Identity {
         func find(byIdentifier identifier: Identifier) async throws -> (any User)?
         func markEmailVerified(for user: any User) async throws
         func markPhoneVerified(for user: any User) async throws
+        func setPassword(for user: any User, passwordHash: String) async throws
     }
 
     protocol TokenStore: Sendable {
@@ -140,6 +142,54 @@ extension Identity {
 
         /// Increment failed attempt count for phone code
         func incrementFailedAttempts(for code: any Verification.PhoneCode) async throws
+    }
+
+    protocol ResetCodeStore: Sendable {
+        // MARK: - Email Reset Codes
+
+        /// Create a new email password reset code
+        @discardableResult
+        func createEmailResetCode(
+            for user: any User,
+            email: String,
+            codeHash: String,
+            expiresAt: Date
+        ) async throws -> any Restoration.EmailResetCode
+
+        /// Find email reset code by email and code hash
+        func findEmailResetCode(
+            forEmail email: String,
+            codeHash: String
+        ) async throws -> (any Restoration.EmailResetCode)?
+
+        /// Invalidate all pending reset codes for email
+        func invalidateEmailResetCodes(forEmail email: String) async throws
+
+        /// Increment failed attempt count for email reset code
+        func incrementFailedAttempts(for code: any Restoration.EmailResetCode) async throws
+
+        // MARK: - Phone Reset Codes
+
+        /// Create a new phone password reset code
+        @discardableResult
+        func createPhoneResetCode(
+            for user: any User,
+            phone: String,
+            codeHash: String,
+            expiresAt: Date
+        ) async throws -> any Restoration.PhoneResetCode
+
+        /// Find phone reset code by phone and code hash
+        func findPhoneResetCode(
+            forPhone phone: String,
+            codeHash: String
+        ) async throws -> (any Restoration.PhoneResetCode)?
+
+        /// Invalidate all pending reset codes for phone
+        func invalidatePhoneResetCodes(forPhone phone: String) async throws
+
+        /// Increment failed attempt count for phone reset code
+        func incrementFailedAttempts(for code: any Restoration.PhoneResetCode) async throws
     }
 
 }

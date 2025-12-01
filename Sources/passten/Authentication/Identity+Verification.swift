@@ -77,6 +77,7 @@ extension Identity {
             to email: String,
             user: any User,
             passwordResetURL: URL,
+            passwordResetCode: String,
         ) async throws
 
         /// Send welcome email after registration

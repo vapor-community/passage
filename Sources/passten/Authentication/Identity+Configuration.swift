@@ -16,6 +16,7 @@ extension Identity {
         let tokens: Tokens
         let jwt: JWT
         let verification: Verification
+        let restoration: Restoration
         let oauth: FederatedLogin
 
         init(
@@ -24,6 +25,7 @@ extension Identity {
             tokens: Tokens = .init(),
             jwt: JWT? = nil,
             verification: Verification = .init(),
+            restoration: Restoration = .init(),
             oauth: FederatedLogin = .init(routes: .init(), providers: [])
         ) throws {
             self.origin = origin
@@ -31,6 +33,7 @@ extension Identity {
             self.tokens = tokens
             self.jwt = try jwt ?? JWT(jwks: try .fileFromEnvironment())
             self.verification = verification
+            self.restoration = restoration
             self.oauth = oauth
         }
     }
@@ -374,6 +377,248 @@ extension Identity.Configuration {
 
     var phoneVerificationURL: URL {
         origin.appending(path: (routes.group + verification.phone.routes.verify.path).string)
+    }
+
+}
+
+// MARK: - Restoration (Password Reset)
+
+extension Identity.Configuration {
+
+    struct Restoration: Sendable {
+
+        /// Preferred delivery channel for password reset when user is looked up by username
+        enum PreferredDelivery: Sendable {
+            case email
+            case phone
+        }
+
+        let preferredDelivery: PreferredDelivery
+        let email: Email
+        let phone: Phone
+        let useQueues: Bool
+
+        init(
+            preferredDelivery: PreferredDelivery = .email,
+            email: Email = .init(),
+            phone: Phone = .init(),
+            useQueues: Bool = false
+        ) {
+            self.preferredDelivery = preferredDelivery
+            self.email = email
+            self.phone = phone
+            self.useQueues = useQueues
+        }
+    }
+
+}
+
+// MARK: - Restoration.Email
+
+extension Identity.Configuration.Restoration {
+
+    struct Email: Sendable {
+        let routes: Routes
+        let codeLength: Int
+        let codeExpiration: TimeInterval
+        let maxAttempts: Int
+        let resetLinkBaseURL: URL?
+        let webForm: WebForm
+
+        struct Routes: Sendable {
+
+            struct Request: Sendable {
+                static let `default` = Request(path: "password", "reset", "email")
+                let path: [PathComponent]
+                init(path: PathComponent...) {
+                    self.path = path
+                }
+            }
+
+            struct Verify: Sendable {
+                static let `default` = Verify(path: "password", "reset", "email", "verify")
+                let path: [PathComponent]
+                init(path: PathComponent...) {
+                    self.path = path
+                }
+            }
+
+            struct Resend: Sendable {
+                static let `default` = Resend(path: "password", "reset", "email", "resend")
+                let path: [PathComponent]
+                init(path: PathComponent...) {
+                    self.path = path
+                }
+            }
+
+            let request: Request
+            let verify: Verify
+            let resend: Resend
+
+            init(
+                request: Request = .default,
+                verify: Verify = .default,
+                resend: Resend = .default
+            ) {
+                self.request = request
+                self.verify = verify
+                self.resend = resend
+            }
+        }
+
+        struct WebForm: Sendable {
+            let enabled: Bool
+            let template: String
+            let route: Route
+
+            struct Route: Sendable {
+                static let `default` = Route(path: "password", "reset")
+                let path: [PathComponent]
+                init(path: PathComponent...) {
+                    self.path = path
+                }
+                init(path: [PathComponent]) {
+                    self.path = path
+                }
+            }
+
+            static let `default` = WebForm(
+                enabled: true,
+                template: "password-reset-form",
+                route: .default
+            )
+
+            init(
+                enabled: Bool = true,
+                template: String = "password-reset-form",
+                route: Route = .default
+            ) {
+                self.enabled = enabled
+                self.template = template
+                self.route = route
+            }
+        }
+
+        init(
+            routes: Routes = .init(),
+            codeLength: Int = 6,
+            codeExpiration: TimeInterval = 15 * 60,  // 15 minutes
+            maxAttempts: Int = 3,
+            resetLinkBaseURL: URL? = nil,
+            webForm: WebForm = .default
+        ) {
+            self.routes = routes
+            self.codeLength = codeLength
+            self.codeExpiration = codeExpiration
+            self.maxAttempts = maxAttempts
+            self.resetLinkBaseURL = resetLinkBaseURL
+            self.webForm = webForm
+        }
+    }
+
+}
+
+extension Identity.Configuration {
+
+    var emailPasswordResetURL: URL {
+        origin.appending(path: (routes.group + restoration.email.routes.verify.path).string)
+    }
+
+    var emailPasswordResetFormURL: URL {
+        origin.appending(path: (routes.group + restoration.email.webForm.route.path).string)
+    }
+
+    /// URL for password reset link in email.
+    /// If resetLinkBaseURL is set, uses that; otherwise uses the web form route if enabled,
+    /// or falls back to the API verify endpoint.
+    func emailPasswordResetLinkURL(code: String, email: String) -> URL {
+        let baseURL: URL
+        if let customURL = restoration.email.resetLinkBaseURL {
+            baseURL = customURL
+        } else if restoration.email.webForm.enabled {
+            baseURL = emailPasswordResetFormURL
+        } else {
+            baseURL = emailPasswordResetURL
+        }
+
+        return baseURL.appending(queryItems: [
+            URLQueryItem(name: "code", value: code),
+            URLQueryItem(name: "email", value: email)
+        ])
+    }
+
+}
+
+// MARK: - Restoration.Phone
+
+extension Identity.Configuration.Restoration {
+
+    struct Phone: Sendable {
+        let routes: Routes
+        let codeLength: Int
+        let codeExpiration: TimeInterval
+        let maxAttempts: Int
+
+        struct Routes: Sendable {
+
+            struct Request: Sendable {
+                static let `default` = Request(path: "password", "reset", "phone")
+                let path: [PathComponent]
+                init(path: PathComponent...) {
+                    self.path = path
+                }
+            }
+
+            struct Verify: Sendable {
+                static let `default` = Verify(path: "password", "reset", "phone", "verify")
+                let path: [PathComponent]
+                init(path: PathComponent...) {
+                    self.path = path
+                }
+            }
+
+            struct Resend: Sendable {
+                static let `default` = Resend(path: "password", "reset", "phone", "resend")
+                let path: [PathComponent]
+                init(path: PathComponent...) {
+                    self.path = path
+                }
+            }
+
+            let request: Request
+            let verify: Verify
+            let resend: Resend
+
+            init(
+                request: Request = .default,
+                verify: Verify = .default,
+                resend: Resend = .default
+            ) {
+                self.request = request
+                self.verify = verify
+                self.resend = resend
+            }
+        }
+
+        init(
+            routes: Routes = .init(),
+            codeLength: Int = 6,
+            codeExpiration: TimeInterval = 5 * 60,  // 5 minutes for SMS
+            maxAttempts: Int = 3
+        ) {
+            self.routes = routes
+            self.codeLength = codeLength
+            self.codeExpiration = codeExpiration
+            self.maxAttempts = maxAttempts
+        }
+    }
+
+}
+
+extension Identity.Configuration {
+
+    var phonePasswordResetURL: URL {
+        origin.appending(path: (routes.group + restoration.phone.routes.verify.path).string)
     }
 
 }
