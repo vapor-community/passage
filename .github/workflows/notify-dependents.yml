@@ -1,0 +1,34 @@
+name: Notify Dependent Repositories
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version
+        id: get-version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION="${{ github.ref_name }}"
+          fi
+          # Remove 'v' prefix if present
+          VERSION="${VERSION#v}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Notifying dependents of version: $VERSION"
+
+      - name: Notify vapor-identity-email-mailgun
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPENDENT_REPOS_PAT }}
+          repository: rozd/vapor-identity-email-mailgun
+          event-type: passage-release
+          client-payload: '{"version": "${{ steps.get-version.outputs.version }}", "release_url": "${{ github.event.release.html_url || format(''https://github.com/{0}/releases/tag/{1}'', github.repository, github.ref_name) }}"}'
