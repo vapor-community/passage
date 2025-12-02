@@ -1,8 +1,8 @@
 import Vapor
 
-// MARK: - Identity Errors
+// MARK: - Passage Errors
 
-public enum IdentityError: Error {
+public enum PassageError: Error {
     case notConfigured
     case storeNotConfigured
     case jwksNotConfigured
@@ -12,7 +12,7 @@ public enum IdentityError: Error {
     case unexpected(message: String)
 }
 
-extension IdentityError: AbortError {
+extension PassageError: AbortError {
     public var status: HTTPResponseStatus {
         switch self {
         case .notConfigured, .storeNotConfigured, .jwksNotConfigured, .emailDeliveryNotConfigured, .phoneDeliveryNotConfigured, .unexpected:
@@ -25,15 +25,15 @@ extension IdentityError: AbortError {
     public var reason: String {
         switch self {
         case .notConfigured:
-            return "Identity is not configured. Call app.identity.configure() during application setup."
+            return "Passage is not configured. Call app.passage.configure() during application setup."
         case .storeNotConfigured:
-            return "Identity store is not configured. Call app.identity.configure() during application setup."
+            return "Passage store is not configured. Call app.passage.configure() during application setup."
         case .jwksNotConfigured:
-            return "Identity JWKS is not configured. Call app.identity.configure() during application setup."
+            return "Passage JWKS is not configured. Call app.passage.configure() during application setup."
         case .emailDeliveryNotConfigured:
-            return "Email delivery is not configured. Provide deliveryEmail in app.identity.configure()."
+            return "Email delivery is not configured. Provide deliveryEmail in app.passage.configure()."
         case .phoneDeliveryNotConfigured:
-            return "Phone delivery is not configured. Provide deliveryPhone in app.identity.configure()."
+            return "Phone delivery is not configured. Provide deliveryPhone in app.passage.configure()."
         case .unexpected(let message):
             return message
         case .missingEnvironmentVariable(name: let name):

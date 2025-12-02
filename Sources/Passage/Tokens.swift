@@ -13,7 +13,7 @@ public struct IdToken: UserInfo, Sendable {
     let issuer: IssuerClaim?
     let audience: AudienceClaim?
 
-    // Identity claims
+    // Passage claims
     let email: String?
     let phone: String?
 }

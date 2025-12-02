@@ -2,7 +2,7 @@ import Vapor
 
 struct PhoneRestorationRouteCollection: RouteCollection {
 
-    let config: Identity.Configuration.Restoration.Phone
+    let config: Passage.Configuration.Restoration.Phone
     let groupPath: [PathComponent]
 
     func boot(routes builder: any RoutesBuilder) throws {

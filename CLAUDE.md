@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-vapor-identity is a Swift package providing identity management for Vapor applications. It handles user authentication (register, login, logout), JWT access/refresh tokens, email/phone verification, password reset flows, and federated OAuth login (Google, GitHub, custom providers).
+Passage is a Swift package providing identity management for Vapor applications. It handles user authentication (register, login, logout), JWT access/refresh tokens, email/phone verification, password reset flows, and federated OAuth login (Google, GitHub, custom providers).
 
 ## Build Commands
 
@@ -17,17 +17,17 @@ swift test            # Run tests (no tests exist yet)
 
 ### Core Types
 
-- **Identity** (`Identity.swift`) - Main entry point, configured via `app.identity.configure(services:configuration:)`. Registers route collections and jobs.
+- **Passage** (`Passage.swift`) - Main entry point, configured via `app.passage.configure(services:configuration:)`. Registers route collections and jobs.
 
 - **User** protocol (`User.swift`) - Apps implement this to define their user model. Requires `id`, `email`, `phone`, `username`, `passwordHash`, `isAnonymous`, `isEmailVerified`, `isPhoneVerified`.
 
-- **Identity.Services** (`Identity+Services.swift`) - Dependency container holding:
+- **Passage.Services** (`Passage+Services.swift`) - Dependency container holding:
   - `Store` - protocol with sub-stores (`UserStore`, `TokenStore`, `CodeStore`, `ResetCodeStore`)
   - `EmailDelivery` / `PhoneDelivery` - protocols for sending verification codes
   - `RandomGenerator` - code/token generation
   - `FederatedLoginService` - OAuth provider integration
 
-- **Identity.Configuration** (`Identity+Configuration.swift`) - Extensive configuration for routes, token TTLs, JWT/JWKS, verification/restoration settings, and OAuth providers.
+- **Passage.Configuration** (`Passage+Configuration.swift`) - Extensive configuration for routes, token TTLs, JWT/JWKS, verification/restoration settings, and OAuth providers.
 
 ### Authentication Flow
 
@@ -41,11 +41,11 @@ swift test            # Run tests (no tests exist yet)
 - `AccessToken` - JWT with standard claims (`sub`, `exp`, `iat`, `iss`, `aud`, `scope`)
 - `RefreshToken` - Protocol for opaque tokens stored hashed, supports rotation via `replacedBy` chain
 
-### Verification (`Identity+Verification.swift`)
+### Verification (`Passage+Verification.swift`)
 
 Handles email/phone verification codes. Supports sync delivery or async via Vapor Queues (`SendEmailCodeJob`, `SendPhoneCodeJob`).
 
-### Restoration (`Identity+Restoration.swift`)
+### Restoration (`Passage+Restoration.swift`)
 
 Password reset flows for email/phone. Similar pattern to verification with queued job support.
 
@@ -56,7 +56,7 @@ Password reset flows for email/phone. Similar pattern to verification with queue
 
 ### Route Collections
 
-- `IdentityRouteCollection` - Core auth routes (register, login, logout, refresh-token, me)
+- `PassageRouteCollection` - Core auth routes (register, login, logout, refresh-token, me)
 - `EmailVerificationRouteCollection` / `PhoneVerificationRouteCollection` - Verification endpoints
 - `EmailRestorationRouteCollection` / `PhoneRestorationRouteCollection` - Password reset endpoints
 - `PasswordResetFormRouteCollection` - Web form for password reset (Leaf template)

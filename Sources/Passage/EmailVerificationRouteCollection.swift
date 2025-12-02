@@ -2,7 +2,7 @@ import Vapor
 
 struct EmailVerificationRouteCollection: RouteCollection {
 
-    let config: Identity.Configuration.Verification.Email
+    let config: Passage.Configuration.Verification.Email
     let groupPath: [PathComponent]
 
     func boot(routes builder: any RoutesBuilder) throws {

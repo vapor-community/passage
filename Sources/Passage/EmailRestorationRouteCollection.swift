@@ -2,7 +2,7 @@ import Vapor
 
 struct EmailRestorationRouteCollection: RouteCollection {
 
-    let config: Identity.Configuration.Restoration.Email
+    let config: Passage.Configuration.Restoration.Email
     let groupPath: [PathComponent]
 
     func boot(routes builder: any RoutesBuilder) throws {

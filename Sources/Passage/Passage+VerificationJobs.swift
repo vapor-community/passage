@@ -3,7 +3,7 @@ import Queues
 
 // MARK: - Email Verification Job
 
-extension Identity.Verification {
+extension Passage.Verification {
 
     /// Job payload for sending email verification
     struct SendEmailCodePayload: Codable {
@@ -18,7 +18,7 @@ extension Identity.Verification {
         typealias Payload = SendEmailCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            let identity = context.application.identity
+            let identity = context.application.passage
 
             guard let delivery = identity.emailDelivery else {
                 context.logger.warning("Email delivery not configured, skipping job")
@@ -46,7 +46,7 @@ extension Identity.Verification {
 
 // MARK: - Phone Verification Job
 
-extension Identity.Verification {
+extension Passage.Verification {
 
     /// Job payload for sending phone verification
     struct SendPhoneCodePayload: Codable {
@@ -60,12 +60,12 @@ extension Identity.Verification {
         typealias Payload = SendPhoneCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            guard let delivery = context.application.identity.phoneDelivery else {
+            guard let delivery = context.application.passage.phoneDelivery else {
                 context.logger.warning("Phone delivery not configured, skipping job")
                 return
             }
 
-            guard let user = try await context.application.identity.store.users.find(byId: payload.userId) else {
+            guard let user = try await context.application.passage.store.users.find(byId: payload.userId) else {
                 context.logger.warning("User not found for phone verification job: \(payload.userId)")
                 return
             }

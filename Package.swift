@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "vapor-identity",
+    name: "passage",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .library(name: "Identity", targets: ["Identity"]),
+        .library(name: "Passage", targets: ["Passage"]),
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.119.2"),
@@ -17,7 +17,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Identity",
+            name: "Passage",
             dependencies: [
                 .product(name: "Vapor", package: "vapor"),
                 .product(name: "JWT", package: "jwt"),

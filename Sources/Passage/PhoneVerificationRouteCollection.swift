@@ -2,7 +2,7 @@ import Vapor
 
 struct PhoneVerificationRouteCollection: RouteCollection {
 
-    let config: Identity.Configuration.Verification.Phone
+    let config: Passage.Configuration.Verification.Phone
     let groupPath: [PathComponent]
 
     func boot(routes builder: any RoutesBuilder) throws {

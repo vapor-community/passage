@@ -3,32 +3,32 @@ import Vapor
 
 // MARK: - Restoration Namespace
 
-public extension Identity {
+public extension Passage {
 
     /// Core service for orchestrating password reset flows.
     /// Supports both synchronous delivery and async via Vapor Queues.
     struct Restoration: Sendable {
         let request: Request
-        let config: Identity.Configuration.Restoration
+        let config: Passage.Configuration.Restoration
     }
 
 }
 
-extension Identity.Restoration {
+extension Passage.Restoration {
 
-    var store: any Identity.Store {
+    var store: any Passage.Store {
         request.store
     }
 
-    var random: any Identity.RandomGenerator {
+    var random: any Passage.RandomGenerator {
         request.random
     }
 
-    var emailDelivery: (any Identity.EmailDelivery)? {
+    var emailDelivery: (any Passage.EmailDelivery)? {
         request.emailDelivery
     }
 
-    var phoneDelivery: (any Identity.PhoneDelivery)? {
+    var phoneDelivery: (any Passage.PhoneDelivery)? {
         request.phoneDelivery
     }
 
@@ -36,8 +36,8 @@ extension Identity.Restoration {
 
 extension Request {
 
-    var restoration: Identity.Restoration {
-        Identity.Restoration(
+    var restoration: Passage.Restoration {
+        Passage.Restoration(
             request: self,
             config: configuration.restoration
         )
@@ -46,7 +46,7 @@ extension Request {
 
 // MARK: - Reset Code Protocols
 
-public extension Identity.Restoration {
+public extension Passage.Restoration {
 
     /// Base protocol for password reset codes with common properties
     protocol Code: Sendable {
@@ -70,7 +70,7 @@ public extension Identity.Restoration {
 
 }
 
-public extension Identity.Restoration.Code {
+public extension Passage.Restoration.Code {
 
     var isExpired: Bool {
         Date() > expiresAt
@@ -84,7 +84,7 @@ public extension Identity.Restoration.Code {
 
 // MARK: - Restoration Service
 
-extension Identity.Restoration {
+extension Passage.Restoration {
 
     /// Request password reset - send code based on identifier type
     func requestReset(for identifier: Identifier) async throws {
@@ -155,7 +155,7 @@ extension Identity.Restoration {
 
     private func sendEmailResetCode(to user: any User, email: String) async throws {
         guard emailDelivery != nil else {
-            throw IdentityError.emailDeliveryNotConfigured
+            throw PassageError.emailDeliveryNotConfigured
         }
 
         // Invalidate existing codes
@@ -182,7 +182,7 @@ extension Identity.Restoration {
 
     private func sendPhoneResetCode(to user: any User, phone: String) async throws {
         guard phoneDelivery != nil else {
-            throw IdentityError.phoneDeliveryNotConfigured
+            throw PassageError.phoneDeliveryNotConfigured
         }
 
         // Invalidate existing codes

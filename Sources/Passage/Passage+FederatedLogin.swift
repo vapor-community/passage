@@ -1,13 +1,13 @@
 import Vapor
 
-extension Identity {
+extension Passage {
 
     struct FederatedLogin: Sendable {
 
         let app: Application
 
         func register(
-            config: Identity.Configuration,
+            config: Passage.Configuration,
         ) throws {
             try service?.register(
                 router: app,
@@ -17,7 +17,7 @@ extension Identity {
             ) { provider, request, tokens in
                 print(">>> \(tokens)")
                 // TODO: Entry Point for handling federated login callback
-                // merge or create user, issue Identity access token, etc.
+                // merge or create user, issue Passage access token, etc.
                 return request.redirect(to: config.oauth.redirectLocation)
             }
         }
@@ -31,16 +31,16 @@ extension Identity {
 
 }
 
-extension Identity.FederatedLogin {
+extension Passage.FederatedLogin {
 
-    var service: (any Identity.FederatedLoginService)? {
-        app.identity.storage.services.federatedLogin
+    var service: (any Passage.FederatedLoginService)? {
+        app.passage.storage.services.federatedLogin
     }
 }
 
 // MARK: - Federated Login Service
 
-public extension Identity {
+public extension Passage {
 
     protocol FederatedLoginService: Sendable {
 
@@ -48,9 +48,9 @@ public extension Identity {
             router: any RoutesBuilder,
             origin: URL,
             group: [PathComponent],
-            config: Identity.Configuration.FederatedLogin,
+            config: Passage.Configuration.FederatedLogin,
             completion: @escaping @Sendable (
-                _ provider: Identity.Configuration.FederatedLogin.Provider,
+                _ provider: Passage.Configuration.FederatedLogin.Provider,
                 _ request: Request,
                 _ payload: String
             ) async throws -> some AsyncResponseEncodable

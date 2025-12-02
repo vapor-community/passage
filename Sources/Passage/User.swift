@@ -27,7 +27,7 @@ extension User {
     var requiredIdAsString: String {
         get throws {
             guard let id = id else {
-                throw IdentityError.unexpected(message: "User ID is missing")
+                throw PassageError.unexpected(message: "User ID is missing")
             }
             return String(describing: id)
         }

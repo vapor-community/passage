@@ -2,32 +2,32 @@ import Foundation
 
 // MARK: - Verification Namespace
 
-public extension Identity {
+public extension Passage {
 
     /// Core service for orchestrating verification flows.
     /// Supports both synchronous delivery and async via Vapor Queues.
     struct Verification: Sendable {
         let request: Request
-        let config: Identity.Configuration.Verification
+        let config: Passage.Configuration.Verification
     }
 
 }
 
-extension Identity.Verification {
+extension Passage.Verification {
 
-    var store: any Identity.Store {
+    var store: any Passage.Store {
         request.store
     }
 
-    var random: any Identity.RandomGenerator {
+    var random: any Passage.RandomGenerator {
         request.random
     }
 
-    var emailDelivery: (any Identity.EmailDelivery)? {
+    var emailDelivery: (any Passage.EmailDelivery)? {
         request.emailDelivery
     }
 
-    var phoneDelivery: (any Identity.PhoneDelivery)? {
+    var phoneDelivery: (any Passage.PhoneDelivery)? {
         request.phoneDelivery
     }
 
@@ -35,8 +35,8 @@ extension Identity.Verification {
 
 extension Request {
 
-    var verification: Identity.Verification {
-        Identity.Verification(
+    var verification: Passage.Verification {
+        Passage.Verification(
             request: self,
             config: configuration.verification
         )
@@ -46,7 +46,7 @@ extension Request {
 
 // MARK: - Email Delivery Protocol
 
-public extension Identity {
+public extension Passage {
 
     /// Protocol for sending verification emails.
     /// Implementations handle template selection and delivery.
@@ -85,7 +85,7 @@ public extension Identity {
 
 // MARK: - Phone Delivery Protocol
 
-public extension Identity {
+public extension Passage {
 
     /// Protocol for sending verification SMS/calls.
     /// Implementations handle message formatting and delivery.
@@ -116,7 +116,7 @@ public extension Identity {
 
 // MARK: - Verification Code Protocols
 
-public extension Identity.Verification {
+public extension Passage.Verification {
 
     /// Base protocol for verification codes with common properties
     protocol Code: Sendable {
@@ -140,7 +140,7 @@ public extension Identity.Verification {
 
 }
 
-extension Identity.Verification.Code {
+extension Passage.Verification.Code {
 
     var isExpired: Bool {
         Date() > expiresAt
@@ -156,14 +156,14 @@ extension Identity.Verification.Code {
 
 import Vapor
 
-extension Identity.Verification {
+extension Passage.Verification {
 
     /// Send email verification code to a user.
     /// Code is generated and stored synchronously.
     /// Delivery is dispatched to queue if available, otherwise sent synchronously.
     func sendEmailCode(to user: any User) async throws {
         guard emailDelivery != nil else {
-            throw IdentityError.emailDeliveryNotConfigured
+            throw PassageError.emailDeliveryNotConfigured
         }
 
         guard let email = user.email else {
@@ -195,7 +195,7 @@ extension Identity.Verification {
     /// Send phone verification code to a user.
     func sendPhoneCode(to user: any User) async throws {
         guard phoneDelivery != nil else {
-            throw IdentityError.phoneDeliveryNotConfigured
+            throw PassageError.phoneDeliveryNotConfigured
         }
 
         guard let phone = user.phone else {

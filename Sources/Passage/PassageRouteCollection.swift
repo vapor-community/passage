@@ -1,12 +1,12 @@
 import Vapor
 
-struct IdentityRouteCollection: RouteCollection {
+struct PassageRouteCollection: RouteCollection {
 
-    init(routes: Identity.Configuration.Routes) {
+    init(routes: Passage.Configuration.Routes) {
         self.routes = routes
     }
 
-    let routes: Identity.Configuration.Routes
+    let routes: Passage.Configuration.Routes
 
     func boot(routes builder: any RoutesBuilder) throws {
         let grouped = routes.group.isEmpty ? builder : builder.grouped(routes.group)
@@ -19,7 +19,7 @@ struct IdentityRouteCollection: RouteCollection {
 
 }
 
-extension IdentityRouteCollection {
+extension PassageRouteCollection {
 
     fileprivate func register(_ req: Request) async throws -> HTTPStatus {
         try RegisterForm.validate(content: req)
@@ -47,7 +47,7 @@ extension IdentityRouteCollection {
 
 }
 
-extension IdentityRouteCollection {
+extension PassageRouteCollection {
 
     fileprivate func login(_ req: Request) async throws -> AuthUser {
         try LoginForm.validate(content: req)
@@ -103,7 +103,7 @@ extension IdentityRouteCollection {
 
 // MARK: - Refresh Token
 
-extension IdentityRouteCollection {
+extension PassageRouteCollection {
 
     fileprivate func refreshToken(_ req: Request) async throws -> AuthUser {
         let form = try req.content.decode(RefreshTokenForm.self)
@@ -154,7 +154,7 @@ extension IdentityRouteCollection {
 
 // MARK: - Logout
 
-extension IdentityRouteCollection {
+extension PassageRouteCollection {
 
     fileprivate func logout(_ req: Request) async throws -> HTTPStatus {
         let form = try req.content.decode(RefreshTokenForm.self)
@@ -169,7 +169,7 @@ extension IdentityRouteCollection {
 
 // MARK: - Current User
 
-extension IdentityRouteCollection {
+extension PassageRouteCollection {
 
     fileprivate func currentUser(_ req: Request) async throws -> AuthUser.User {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)

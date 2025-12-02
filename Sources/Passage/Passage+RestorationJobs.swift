@@ -3,7 +3,7 @@ import Queues
 
 // MARK: - Email Reset Job
 
-extension Identity.Restoration {
+extension Passage.Restoration {
 
     /// Job payload for sending email password reset
     struct SendEmailResetCodePayload: Codable {
@@ -18,7 +18,7 @@ extension Identity.Restoration {
         typealias Payload = SendEmailResetCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            let identity = context.application.identity
+            let identity = context.application.passage
 
             guard let delivery = identity.emailDelivery else {
                 context.logger.warning("Email delivery not configured, skipping password reset job")
@@ -46,7 +46,7 @@ extension Identity.Restoration {
 
 // MARK: - Phone Reset Job
 
-extension Identity.Restoration {
+extension Passage.Restoration {
 
     /// Job payload for sending phone password reset
     struct SendPhoneResetCodePayload: Codable {
@@ -60,12 +60,12 @@ extension Identity.Restoration {
         typealias Payload = SendPhoneResetCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            guard let delivery = context.application.identity.phoneDelivery else {
+            guard let delivery = context.application.passage.phoneDelivery else {
                 context.logger.warning("Phone delivery not configured, skipping password reset job")
                 return
             }
 
-            guard let user = try await context.application.identity.store.users.find(byId: payload.userId) else {
+            guard let user = try await context.application.passage.store.users.find(byId: payload.userId) else {
                 context.logger.warning("User not found for phone password reset job: \(payload.userId)")
                 return
             }

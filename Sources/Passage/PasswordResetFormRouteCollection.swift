@@ -5,7 +5,7 @@ import Leaf
 /// This provides a default UI for users clicking reset links in emails.
 struct PasswordResetFormRouteCollection: RouteCollection, Sendable {
 
-    let config: Identity.Configuration
+    let config: Passage.Configuration
     let groupPath: [PathComponent]
 
     func boot(routes builder: any RoutesBuilder) throws {

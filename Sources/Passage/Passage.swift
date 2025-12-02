@@ -1,7 +1,7 @@
 import Vapor
 import JWT
 
-public struct Identity: Sendable {
+public struct Passage: Sendable {
 
     init(app: Application) {
         self.app = app
@@ -20,7 +20,7 @@ public struct Identity: Sendable {
 
         try await app.jwt.keys.add(jwksJSON: configuration.jwt.jwks.json)
 
-        try app.register(collection: IdentityRouteCollection(routes: configuration.routes))
+        try app.register(collection: PassageRouteCollection(routes: configuration.routes))
 
         if let _ = services.emailDelivery {
             // Register email verification routes if delivery is provided
@@ -74,7 +74,7 @@ public struct Identity: Sendable {
 
 // MARK: - Storage Accessors
 
-extension Identity {
+extension Passage {
 
     var services: Services {
         storage.services

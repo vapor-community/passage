@@ -1,7 +1,7 @@
 import Foundation
 import Vapor
 
-public extension Identity {
+public extension Passage {
 
     public struct Configuration: Sendable {
         let origin: URL
@@ -35,7 +35,7 @@ public extension Identity {
 
 // MARK: - Routes
 
-extension Identity.Configuration {
+extension Passage.Configuration {
     public struct Routes: Sendable {
         public struct Register: Sendable {
             public static let `default` = Register(path: "register")
@@ -139,7 +139,7 @@ extension Identity.Configuration {
 
 // MARK: - Tokens
 
-extension Identity.Configuration {
+extension Passage.Configuration {
 
     public struct Tokens: Sendable {
 
@@ -187,7 +187,7 @@ extension Identity.Configuration {
 
 // MARK: - JWKS
 
-public extension Identity.Configuration {
+public extension Passage.Configuration {
 
     public struct JWT: Sendable {
         public struct JWKS: Sendable {
@@ -206,11 +206,11 @@ public extension Identity.Configuration {
 
 }
 
-public extension Identity.Configuration.JWT.JWKS {
+public extension Passage.Configuration.JWT.JWKS {
 
     static func environment(name: String = "JWKS") throws -> Self {
         guard let json = ProcessInfo.processInfo.environment[name] else {
-            throw IdentityError.missingEnvironmentVariable(name: name)
+            throw PassageError.missingEnvironmentVariable(name: name)
         }
         return .init(json: json)
     }
@@ -222,7 +222,7 @@ public extension Identity.Configuration.JWT.JWKS {
 
     static func fileFromEnvironment(name: String = "JWKS_FILE_PATH") throws -> Self {
         guard let path = ProcessInfo.processInfo.environment[name] else {
-            throw IdentityError.missingEnvironmentVariable(name: name)
+            throw PassageError.missingEnvironmentVariable(name: name)
         }
         return try .file(path: path)
     }
@@ -231,7 +231,7 @@ public extension Identity.Configuration.JWT.JWKS {
 
 // MARK: - Verification
 
-extension Identity.Configuration {
+extension Passage.Configuration {
 
     public struct Verification: Sendable {
 
@@ -254,7 +254,7 @@ extension Identity.Configuration {
 
 // MARK: - Verification.Email
 
-extension Identity.Configuration.Verification {
+extension Passage.Configuration.Verification {
 
     public struct Email: Sendable {
         let routes: Routes
@@ -309,7 +309,7 @@ extension Identity.Configuration.Verification {
 
 }
 
-extension Identity.Configuration {
+extension Passage.Configuration {
 
     var emailVerificationURL: URL {
         origin.appending(path: (routes.group + verification.email.routes.verify.path).string)
@@ -319,7 +319,7 @@ extension Identity.Configuration {
 
 // MARK: - Verification.Phone
 
-extension Identity.Configuration.Verification {
+extension Passage.Configuration.Verification {
 
     public struct Phone: Sendable {
         let routes: Routes
@@ -382,7 +382,7 @@ extension Identity.Configuration.Verification {
 
 }
 
-extension Identity.Configuration {
+extension Passage.Configuration {
 
     var phoneVerificationURL: URL {
         origin.appending(path: (routes.group + verification.phone.routes.verify.path).string)
@@ -392,7 +392,7 @@ extension Identity.Configuration {
 
 // MARK: - Restoration (Password Reset)
 
-extension Identity.Configuration {
+extension Passage.Configuration {
 
     public struct Restoration: Sendable {
 
@@ -424,7 +424,7 @@ extension Identity.Configuration {
 
 // MARK: - Restoration.Email
 
-extension Identity.Configuration.Restoration {
+extension Passage.Configuration.Restoration {
 
     public struct Email: Sendable {
 
@@ -529,7 +529,7 @@ extension Identity.Configuration.Restoration {
 
 }
 
-extension Identity.Configuration {
+extension Passage.Configuration {
 
     var emailPasswordResetURL: URL {
         origin.appending(path: (routes.group + restoration.email.routes.verify.path).string)
@@ -562,7 +562,7 @@ extension Identity.Configuration {
 
 // MARK: - Restoration.Phone
 
-extension Identity.Configuration.Restoration {
+extension Passage.Configuration.Restoration {
 
     public struct Phone: Sendable {
         let routes: Routes
@@ -626,7 +626,7 @@ extension Identity.Configuration.Restoration {
 
 }
 
-extension Identity.Configuration {
+extension Passage.Configuration {
 
     var phonePasswordResetURL: URL {
         origin.appending(path: (routes.group + restoration.phone.routes.verify.path).string)
@@ -636,7 +636,7 @@ extension Identity.Configuration {
 
 // MARK: - Federated Login
 
-public extension Identity.Configuration {
+public extension Passage.Configuration {
 
     public struct FederatedLogin: Sendable {
         public struct Routes: Sendable {
@@ -736,16 +736,16 @@ public extension Identity.Configuration {
 
 }
 
-public extension Identity.Configuration.FederatedLogin {
-    func loginPath(for provider: Identity.Configuration.FederatedLogin.Provider) -> [PathComponent] {
+public extension Passage.Configuration.FederatedLogin {
+    func loginPath(for provider: Passage.Configuration.FederatedLogin.Provider) -> [PathComponent] {
         return routes.group + provider.routes.login.path
     }
-    func callbackPath(for provider: Identity.Configuration.FederatedLogin.Provider) -> [PathComponent] {
+    func callbackPath(for provider: Passage.Configuration.FederatedLogin.Provider) -> [PathComponent] {
         return routes.group + provider.routes.callback.path
     }
 }
 
-public extension Identity.Configuration.FederatedLogin.Provider {
+public extension Passage.Configuration.FederatedLogin.Provider {
 
     static func google(
         credentials: Credentials = .conventional,
@@ -788,7 +788,7 @@ public extension Identity.Configuration.FederatedLogin.Provider {
     }
 }
 
-public extension Identity.Configuration.FederatedLogin.Provider.Name {
+public extension Passage.Configuration.FederatedLogin.Provider.Name {
     static let google = named("google")
     static let github = named("github")
 

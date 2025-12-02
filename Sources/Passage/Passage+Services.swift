@@ -1,7 +1,7 @@
 import Foundation
 import CryptoKit
 
-public extension Identity {
+public extension Passage {
 
     struct Services: Sendable {
         let store: any Store
@@ -27,7 +27,7 @@ public extension Identity {
 
 }
 
-extension Identity {
+extension Passage {
 
     var store: any Store {
         services.store
@@ -48,7 +48,7 @@ extension Identity {
 
 // MARK: - Store
 
-public extension Identity {
+public extension Passage {
 
     protocol Store: Sendable {
         var users: any UserStore { get }
@@ -189,7 +189,7 @@ public extension Identity {
 
 // MARK: - Random
 
-public extension Identity {
+public extension Passage {
     protocol RandomGenerator: Sendable {
         func generateRandomString(count: Int) -> String
         func generateOpaqueToken() -> String
@@ -197,7 +197,7 @@ public extension Identity {
         func generateVerificationCode(length: Int) -> String
     }
 
-    public struct DefaultRandomGenerator: Identity.RandomGenerator {
+    public struct DefaultRandomGenerator: Passage.RandomGenerator {
         public init() {
 
         }
