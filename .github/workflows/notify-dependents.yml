@@ -25,10 +25,27 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Notifying dependents of version: $VERSION"
 
-      - name: Notify vapor-identity-email-mailgun
+
+      - name: Notify passage-fluent
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.DEPENDENT_REPOS_PAT }}
-          repository: rozd/vapor-identity-email-mailgun
+          repository: rozd/passage-fluent
+          event-type: passage-release
+          client-payload: '{"version": "${{ steps.get-version.outputs.version }}", "release_url": "${{ github.event.release.html_url || format(''https://github.com/{0}/releases/tag/{1}'', github.repository, github.ref_name) }}"}'
+
+      - name: Notify passage-mailgun
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPENDENT_REPOS_PAT }}
+          repository: rozd/passage-mailgun
+          event-type: passage-release
+          client-payload: '{"version": "${{ steps.get-version.outputs.version }}", "release_url": "${{ github.event.release.html_url || format(''https://github.com/{0}/releases/tag/{1}'', github.repository, github.ref_name) }}"}'
+
+      - name: Notify passage-imperial
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.DEPENDENT_REPOS_PAT }}
+          repository: rozd/passage-imperial
           event-type: passage-release
           client-payload: '{"version": "${{ steps.get-version.outputs.version }}", "release_url": "${{ github.event.release.html_url || format(''https://github.com/{0}/releases/tag/{1}'', github.repository, github.ref_name) }}"}'
