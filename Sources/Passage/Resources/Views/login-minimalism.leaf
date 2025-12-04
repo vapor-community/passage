@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: #(theme.colors.background);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #(theme.colors.surface);
+            padding: 30px;
+            width: 450px;
+            max-width: 100%;
+            border-radius: 20px;
+        }
+
+        h1 {
+            color: #(theme.colors.onSurface);
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .error {
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            background-color: #(theme.colors.error);
+            color: #(theme.colors.onError);
+            border: 1.5px solid #(theme.colors.error);
+        }
+
+        .flex-column {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .flex-column > label {
+            color: #(theme.colors.onSurface);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .inputForm {
+            border: 1.5px solid #(theme.colors.outline);
+            border-radius: 10px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            transition: 0.2s ease-in-out;
+            background-color: #(theme.colors.surface);
+        }
+
+        .inputForm svg {
+            flex-shrink: 0;
+            opacity: 0.6;
+        }
+
+        .inputForm svg path {
+            fill: #(theme.colors.onSurface);
+        }
+
+        .input {
+            margin-left: 10px;
+            border-radius: 10px;
+            border: none;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: #(theme.colors.onSurface);
+            font-size: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .input:focus {
+            outline: none;
+        }
+
+        .input::placeholder {
+            color: #(theme.colors.onSurfaceVariant);
+            opacity: 0.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .inputForm:focus-within {
+            border: 1.5px solid #(theme.colors.primary);
+        }
+
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            justify-content: space-between;
+        }
+
+        .flex-row > div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .flex-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .flex-row > div > label {
+            font-size: 14px;
+            color: #(theme.colors.onSurface);
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .span {
+            font-size: 14px;
+            color: #(theme.colors.primary);
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .span:hover {
+            text-decoration: underline;
+        }
+
+        .button-submit {
+            margin: 20px 0 10px 0;
+            background-color: #(theme.colors.primary);
+            border: none;
+            color: #(theme.colors.onPrimary);
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 10px;
+            height: 50px;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s ease-in-out;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .button-submit:hover {
+            filter: brightness(1.16);
+        }
+
+        .button-submit:active {
+            filter: brightness(0.82);
+        }
+
+        .p {
+            text-align: center;
+            color: #(theme.colors.onSurface);
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .line {
+            position: relative;
+            margin: 15px 0;
+        }
+
+        .line::before,
+        .line::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background-color: #(theme.colors.outline);
+        }
+
+        .line::before {
+            left: 0;
+        }
+
+        .line::after {
+            right: 0;
+        }
+
+        .btn {
+            margin-top: 10px;
+            width: 100%;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 500;
+            gap: 10px;
+            border: 1px solid #(theme.colors.outline);
+            background-color: #(theme.colors.surface);
+            color: #(theme.colors.onSurface);
+            cursor: pointer;
+            transition: 0.2s ease-in-out;
+            text-decoration: none;
+            font-size: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .btn:hover {
+            border: 1px solid #(theme.colors.primary);
+        }
+
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        @media (max-width: 480px) {
+            .form {
+                padding: 25px 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form class="form" method="POST">
+        <h1>Sign In</h1>
+
+        #if(params.error):
+        <div class="error">#(params.error)</div>
+        #endif
+
+        <!-- Email/Phone/Username Input -->
+        #if(params.byEmail):
+        <div class="flex-column">
+            <label>Email</label>
+        </div>
+        <div class="inputForm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20">
+                <g data-name="Layer 3" id="Layer_3">
+                    <path d="m30.853 13.87a15 15 0 0 0 -29.729 4.082 15.1 15.1 0 0 0 12.876 12.918 15.6 15.6 0 0 0 2.016.13 14.85 14.85 0 0 0 7.715-2.145 1 1 0 1 0 -1.031-1.711 13.007 13.007 0 1 1 5.458-6.529 2.149 2.149 0 0 1 -4.158-.759v-10.856a1 1 0 0 0 -2 0v1.726a8 8 0 1 0 .2 10.325 4.135 4.135 0 0 0 7.83.274 15.2 15.2 0 0 0 .823-7.455zm-14.853 8.13a6 6 0 1 1 6-6 6.006 6.006 0 0 1 -6 6z"></path>
+                </g>
+            </svg>
+            <input
+                placeholder="Enter your Email"
+                class="input"
+                type="email"
+                id="identifier"
+                name="identifier"
+                required
+                autocomplete="email"
+            >
+        </div>
+        #elseif(params.byPhone):
+        <div class="flex-column">
+            <label>Phone Number</label>
+        </div>
+        <div class="inputForm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20">
+                <path d="M6.62,10.79C8.06,13.62 10.38,15.94 13.21,17.38L15.41,15.18C15.69,14.9 16.08,14.82 16.43,14.93C17.55,15.3 18.75,15.5 20,15.5A1,1 0 0,1 21,16.5V20A1,1 0 0,1 20,21A17,17 0 0,1 3,4A1,1 0 0,1 4,3H7.5A1,1 0 0,1 8.5,4C8.5,5.25 8.7,6.45 9.07,7.57C9.18,7.92 9.1,8.31 8.82,8.59L6.62,10.79Z"></path>
+            </svg>
+            <input
+                placeholder="Enter your Phone Number"
+                class="input"
+                type="tel"
+                id="identifier"
+                name="identifier"
+                required
+                autocomplete="tel"
+            >
+        </div>
+        #elseif(params.byUsername):
+        <div class="flex-column">
+            <label>Username</label>
+        </div>
+        <div class="inputForm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20">
+                <path d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z"></path>
+            </svg>
+            <input
+                placeholder="Enter your Username"
+                class="input"
+                type="text"
+                id="identifier"
+                name="identifier"
+                required
+                autocomplete="username"
+            >
+        </div>
+        #endif
+
+        <!-- Password Input -->
+        <div class="flex-column">
+            <label>Password</label>
+        </div>
+        <div class="inputForm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="-64 0 512 512" height="20">
+                <path d="m336 512h-288c-26.453125 0-48-21.523438-48-48v-224c0-26.476562 21.546875-48 48-48h288c26.453125 0 48 21.523438 48 48v224c0 26.476562-21.546875 48-48 48zm-288-288c-8.8125 0-16 7.167969-16 16v224c0 8.832031 7.1875 16 16 16h288c8.8125 0 16-7.167969 16-16v-224c0-8.832031-7.1875-16-16-16zm0 0"></path>
+                <path d="m304 224c-8.832031 0-16-7.167969-16-16v-80c0-52.929688-43.070312-96-96-96s-96 43.070312-96 96v80c0 8.832031-7.167969 16-16 16s-16-7.167969-16-16v-80c0-70.59375 57.40625-128 128-128s128 57.40625 128 128v80c0 8.832031-7.167969 16-16 16zm0 0"></path>
+            </svg>
+            <input
+                placeholder="Enter your Password"
+                class="input"
+                type="password"
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+            >
+        </div>
+
+        <!-- Remember me and Forgot password -->
+        <div class="flex-row">
+            <div>
+                <input type="checkbox" id="remember" name="remember">
+                <label for="remember">Remember me</label>
+            </div>
+            #if(params.resetPasswordLink):
+            <a href="#(params.resetPasswordLink)" class="span">Forgot password?</a>
+            #endif
+        </div>
+
+        <button type="submit" class="button-submit">Sign In</button>
+
+        #if(params.registerLink):
+        <p class="p">Don't have an account? <a href="#(params.registerLink)" class="span">Sign Up</a></p>
+        #endif
+
+        #if(params.withGoogle || params.withApple || params.withGitHub):
+        <p class="p line">Or With</p>
+
+        <div class="oauth-buttons">
+            #if(params.withGoogle):
+            <a href="/auth/oauth/google" class="btn">
+                <svg xml:space="preserve" style="enable-background:new 0 0 512 512;" viewBox="0 0 512 512" y="0px" x="0px" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" id="Layer_1" width="20" version="1.1">
+                    <path d="M113.47,309.408L95.648,375.94l-65.139,1.378C11.042,341.211,0,299.9,0,256c0-42.451,10.324-82.483,28.624-117.732h0.014l57.992,10.632l25.404,57.644c-5.317,15.501-8.215,32.141-8.215,49.456C103.821,274.792,107.225,292.797,113.47,309.408z" style="fill:#FBBB00;"></path>
+                    <path d="M507.527,208.176C510.467,223.662,512,239.655,512,256c0,18.328-1.927,36.206-5.598,53.451c-12.462,58.683-45.025,109.925-90.134,146.187l-0.014-0.014l-73.044-3.727l-10.338-64.535c29.932-17.554,53.324-45.025,65.646-77.911h-136.89V208.176h138.887L507.527,208.176L507.527,208.176z" style="fill:#518EF8;"></path>
+                    <path d="M416.253,455.624l0.014,0.014C372.396,490.901,316.666,512,256,512c-97.491,0-182.252-54.491-225.491-134.681l82.961-67.91c21.619,57.698,77.278,98.771,142.53,98.771c28.047,0,54.323-7.582,76.87-20.818L416.253,455.624z" style="fill:#28B446;"></path>
+                    <path d="M419.404,58.936l-82.933,67.896c-23.335-14.586-50.919-23.012-80.471-23.012c-66.729,0-123.429,42.957-143.965,102.724l-83.397-68.276h-0.014C71.23,56.123,157.06,0,256,0C318.115,0,375.068,22.126,419.404,58.936z" style="fill:#F14336;"></path>
+                </svg>
+                Google
+            </a>
+            #endif
+
+            #if(params.withApple):
+            <a href="/auth/oauth/apple" class="btn">
+                <svg xml:space="preserve" style="enable-background:new 0 0 22.773 22.773;" viewBox="0 0 22.773 22.773" y="0px" x="0px" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" id="Capa_1" width="20" height="20" version="1.1">
+                    <g><g>
+                        <path d="M15.769,0c0.053,0,0.106,0,0.162,0c0.13,1.606-0.483,2.806-1.228,3.675c-0.731,0.863-1.732,1.7-3.351,1.573c-0.108-1.583,0.506-2.694,1.25-3.561C13.292,0.879,14.557,0.16,15.769,0z"></path>
+                        <path d="M20.67,16.716c0,0.016,0,0.03,0,0.045c-0.455,1.378-1.104,2.559-1.896,3.655c-0.723,0.995-1.609,2.334-3.191,2.334c-1.367,0-2.275-0.879-3.676-0.903c-1.482-0.024-2.297,0.735-3.652,0.926c-0.155,0-0.31,0-0.462,0c-0.995-0.144-1.798-0.932-2.383-1.642c-1.725-2.098-3.058-4.808-3.306-8.276c0-0.34,0-0.679,0-1.019c0.105-2.482,1.311-4.5,2.914-5.478c0.846-0.52,2.009-0.963,3.304-0.765c0.555,0.086,1.122,0.276,1.619,0.464c0.471,0.181,1.06,0.502,1.618,0.485c0.378-0.011,0.754-0.208,1.135-0.347c1.116-0.403,2.21-0.865,3.652-0.648c1.733,0.262,2.963,1.032,3.723,2.22c-1.466,0.933-2.625,2.339-2.427,4.74C17.818,14.688,19.086,15.964,20.67,16.716z"></path>
+                    </g></g>
+                </svg>
+                Apple
+            </a>
+            #endif
+
+            #if(params.withGitHub):
+            <a href="/auth/oauth/github" class="btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                </svg>
+                GitHub
+            </a>
+            #endif
+        </div>
+        #endif
+    </form>
+</body>
+</html>

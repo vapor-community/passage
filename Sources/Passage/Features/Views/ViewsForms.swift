@@ -1,6 +1,10 @@
 import Vapor
 
-// MARK: Password Reset Request Form
+// MARK: - Login Form
+
+
+
+// MARK: - Password Reset Request Form
 
 struct PasswordResetRequestForm: Content {
     let email: String?
@@ -32,7 +36,7 @@ extension PasswordResetRequestForm {
     }
 }
 
-// MARK: Password Reset Confirm Form
+// MARK: - Password Reset Confirm Form
 
 struct PasswordResetConfirmForm: Content {
     let email: String?
@@ -57,6 +61,18 @@ extension PasswordResetConfirmForm: Validatable {
         }
         if newPassword != confirmPassword {
             throw Abort(.badRequest, reason: "New password and confirm password do not match.")
+        }
+    }
+}
+
+extension PasswordResetConfirmForm {
+    func asIdentifier() throws -> Identifier {
+        if let email = email {
+            return .init(kind: .email, value: email)
+        } else if let phone = phone {
+            return .init(kind: .phone, value: phone)
+        } else {
+            throw AuthenticationError.identifierNotSpecified
         }
     }
 }

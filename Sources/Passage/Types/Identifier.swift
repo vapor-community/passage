@@ -1,6 +1,6 @@
-public struct Identifier {
+public struct Identifier: Sendable {
 
-    public enum Kind: String, Codable {
+    public enum Kind: String, Codable, Sendable {
         case email
         case phone
         case username

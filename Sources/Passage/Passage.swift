@@ -39,12 +39,12 @@ public struct Passage: Sendable {
                 groupPath: configuration.routes.group
             ))
             // Register password reset web form if enabled
-            if configuration.restoration.email.webForm.enabled {
-                try app.register(collection: PasswordResetFormRouteCollection(
-                    config: configuration,
-                    groupPath: configuration.routes.group
-                ))
-            }
+//            if configuration.restoration.email.webForm.enabled {
+//                try app.register(collection: PasswordResetFormRouteCollection(
+//                    config: configuration,
+//                    groupPath: configuration.routes.group
+//                ))
+//            }
         }
 
         if let _ = services.phoneDelivery {

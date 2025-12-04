@@ -12,13 +12,16 @@ public extension Passage.Configuration {
             var theme: Passage.Views.Theme { get }
         }
 
+        let login: LoginView?
         let passwordResetRequest: PasswordResetRequestView?
         let passwordResetConfirm: PasswordResetConfirmView?
 
         public init(
+            login: LoginView? = nil,
             passwordResetRequest: PasswordResetRequestView? = nil,
             passwordResetConfirm: PasswordResetConfirmView? = nil,
         ) {
+            self.login = login
             self.passwordResetRequest = passwordResetRequest
             self.passwordResetConfirm = passwordResetConfirm
         }
@@ -31,7 +34,7 @@ public extension Passage.Configuration {
 extension Passage.Configuration.Views {
 
     var enabled: Bool {
-        return passwordResetRequest != nil || passwordResetConfirm != nil
+        return login != nil || passwordResetRequest != nil || passwordResetConfirm != nil
     }
 }
 
@@ -44,7 +47,40 @@ extension Passage.Configuration.Views.View {
     }
 }
 
-// MARK: - Password Reset Views
+// MARK: - Login View
+
+public extension Passage.Configuration.Views {
+
+    struct LoginView: Sendable, View {
+        public struct Route: Sendable {
+            let path: [PathComponent]
+            public init(path: PathComponent...) {
+                self.path = path
+            }
+        }
+
+        let name: String = "login"
+        let route: Route
+        let style: Passage.Views.Style
+        let theme: Passage.Views.Theme
+        let identifier: Identifier.Kind
+
+        public init(
+            route: Route = Route(path: "login"),
+            style: Passage.Views.Style,
+            theme: Passage.Views.Theme,
+            identifier: Identifier.Kind,
+        ) {
+            self.route = route
+            self.style = style
+            self.theme = theme
+            self.identifier = identifier
+        }
+    }
+
+}
+
+// MARK: - Password Reset View
 
 public extension Passage.Configuration.Views {
 

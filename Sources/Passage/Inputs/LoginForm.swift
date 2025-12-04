@@ -1,6 +1,6 @@
 import Vapor
 
-public protocol LoginForm: Content, Validatable {
+public protocol LoginForm: Form {
     var email: String? { get }
     var phone: String? { get }
     var username: String? { get }
