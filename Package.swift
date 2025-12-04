@@ -30,5 +30,11 @@ let package = Package(
                 .copy("Resources/Views"),
             ]
         ),
+        .target(
+            name: "PassageOnlyForTest",
+            dependencies: [
+                "Passage",
+            ]
+        )
     ]
 )

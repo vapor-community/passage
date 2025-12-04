@@ -1,0 +1,468 @@
+import Passage
+import Foundation
+
+// MARK: - InMemory Models
+
+extension Passage.OnlyForTest {
+
+    public struct InMemoryUser: User, @unchecked Sendable {
+        public var id: String?
+        public var email: String?
+        public var phone: String?
+        public var username: String?
+        public var passwordHash: String?
+        public var isAnonymous: Bool
+        public var isEmailVerified: Bool
+        public var isPhoneVerified: Bool
+    }
+
+    struct InMemoryRefreshToken: RefreshToken, @unchecked Sendable {
+        var id: String?
+        var userId: String
+        var user: InMemoryUser {
+            InMemoryUser(
+                id: userId,
+                email: nil,
+                phone: nil,
+                username: nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+        }
+        var tokenHash: String
+        var expiresAt: Date
+        var revokedAt: Date?
+        var replacedBy: String?
+    }
+
+    struct InMemoryEmailVerificationCode: EmailVerificationCode, @unchecked Sendable {
+        var userId: String
+        var user: InMemoryUser {
+            InMemoryUser(
+                id: userId,
+                email: email,
+                phone: nil,
+                username: nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+        }
+        var email: String
+        var codeHash: String
+        var expiresAt: Date
+        var failedAttempts: Int
+    }
+
+    struct InMemoryPhoneVerificationCode: PhoneVerificationCode, @unchecked Sendable {
+        var userId: String
+        var user: InMemoryUser {
+            InMemoryUser(
+                id: userId,
+                email: nil,
+                phone: phone,
+                username: nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+        }
+        var phone: String
+        var codeHash: String
+        var expiresAt: Date
+        var failedAttempts: Int
+    }
+
+    struct InMemoryEmailPasswordResetCode: EmailPasswordResetCode, @unchecked Sendable {
+        var userId: String
+        var user: InMemoryUser {
+            InMemoryUser(
+                id: userId,
+                email: email,
+                phone: nil,
+                username: nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+        }
+        var email: String
+        var codeHash: String
+        var expiresAt: Date
+        var failedAttempts: Int
+    }
+
+    struct InMemoryPhonePasswordResetCode: PhonePasswordResetCode, @unchecked Sendable {
+        var userId: String
+        var user: InMemoryUser {
+            InMemoryUser(
+                id: userId,
+                email: nil,
+                phone: phone,
+                username: nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+        }
+        var phone: String
+        var codeHash: String
+        var expiresAt: Date
+        var failedAttempts: Int
+    }
+}
+
+// MARK: - InMemoryUserStore
+
+public extension Passage.OnlyForTest.InMemoryStore {
+
+    final class InMemoryUserStore: Passage.UserStore, @unchecked Sendable {
+
+        public var userType: Passage.OnlyForTest.InMemoryUser.Type { Passage.OnlyForTest.InMemoryUser.self }
+
+        private var users: [String: Passage.OnlyForTest.InMemoryUser] = [:]
+        private var identifierIndex: [String: String] = [:] // identifier -> userId
+
+        public func create(with credential: Credential) async throws {
+            let userId = UUID().uuidString
+            let user = Passage.OnlyForTest.InMemoryUser(
+                id: userId,
+                email: credential.identifier.kind == .email ? credential.identifier.value : nil,
+                phone: credential.identifier.kind == .phone ? credential.identifier.value : nil,
+                username: credential.identifier.kind == .username ? credential.identifier.value : nil,
+                passwordHash: credential.passwordHash,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+            users[userId] = user
+            identifierIndex[credential.identifier.value] = userId
+        }
+
+        public func find(byId id: String) async throws -> (any User)? {
+            return users[id]
+        }
+
+        public func find(byCredential credential: Credential) async throws -> (any User)? {
+            guard let userId = identifierIndex[credential.identifier.value] else {
+                return nil
+            }
+            return users[userId]
+        }
+
+        public func find(byIdentifier identifier: Identifier) async throws -> (any User)? {
+            guard let userId = identifierIndex[identifier.value] else {
+                return nil
+            }
+            return users[userId]
+        }
+
+        public func markEmailVerified(for user: any User) async throws {
+            guard let userId = user.id?.description else { return }
+            users[userId]?.isEmailVerified = true
+        }
+
+        public func markPhoneVerified(for user: any User) async throws {
+            guard let userId = user.id?.description else { return }
+            users[userId]?.isPhoneVerified = true
+        }
+
+        public func setPassword(for user: any User, passwordHash: String) async throws {
+            guard let userId = user.id?.description else { return }
+            users[userId]?.passwordHash = passwordHash
+        }
+    }
+
+}
+
+// MARK: - InMemoryTokenStore
+
+public extension Passage.OnlyForTest.InMemoryStore {
+
+    final class InMemoryTokenStore: Passage.TokenStore, @unchecked Sendable {
+
+        private var tokens: [String: Passage.OnlyForTest.InMemoryRefreshToken] = [:]
+
+        @discardableResult
+        public func createRefreshToken(
+            for user: any User,
+            tokenHash hash: String,
+            expiresAt: Date
+        ) async throws -> any RefreshToken {
+            return try await createRefreshToken(
+                for: user,
+                tokenHash: hash,
+                expiresAt: expiresAt,
+                replacing: nil
+            )
+        }
+
+        @discardableResult
+        public func createRefreshToken(
+            for user: any User,
+            tokenHash hash: String,
+            expiresAt: Date,
+            replacing tokenToReplace: (any RefreshToken)?
+        ) async throws -> any RefreshToken {
+            let tokenId = UUID().uuidString
+
+            // Mark old token as replaced
+            if let oldToken = tokenToReplace {
+                if let oldHash = oldToken.tokenHash as String?,
+                   var existing = tokens[oldHash] {
+                    existing.replacedBy = tokenId
+                    tokens[oldHash] = existing
+                }
+            }
+
+            guard let userId = user.id?.description else {
+                throw PassageError.unexpected(message: "User ID is missing")
+            }
+
+            let token = Passage.OnlyForTest.InMemoryRefreshToken(
+                id: tokenId,
+                userId: userId,
+                tokenHash: hash,
+                expiresAt: expiresAt,
+                revokedAt: nil,
+                replacedBy: nil
+            )
+
+            tokens[hash] = token
+            return token
+        }
+
+        public func find(refreshTokenHash hash: String) async throws -> (any RefreshToken)? {
+            return tokens[hash]
+        }
+
+        public func revokeRefreshToken(for user: any User) async throws {
+            guard let userId = user.id?.description else { return }
+
+            for (hash, var token) in tokens where token.userId == userId {
+                token.revokedAt = Date()
+                tokens[hash] = token
+            }
+        }
+
+        public func revokeRefreshToken(withHash hash: String) async throws {
+            tokens[hash]?.revokedAt = Date()
+        }
+
+        public func revoke(refreshTokenFamilyStartingFrom token: any RefreshToken) async throws {
+            var current: (any RefreshToken)? = token
+
+            while let currentToken = current {
+                if let hash = currentToken.tokenHash as String? {
+                    tokens[hash]?.revokedAt = Date()
+                }
+
+                // Follow the chain
+                if let replacedById = currentToken.replacedBy?.description,
+                   let nextToken = tokens.values.first(where: { $0.id == replacedById }) {
+                    current = nextToken
+                } else {
+                    break
+                }
+            }
+        }
+    }
+
+}
+
+// MARK: - InMemoryVerificationStore
+
+public extension Passage.OnlyForTest.InMemoryStore {
+
+    final class InMemoryVerificationStore: Passage.VerificationCodeStore, @unchecked Sendable {
+
+        private var emailCodes: [String: Passage.OnlyForTest.InMemoryEmailVerificationCode] = [:]
+        private var phoneCodes: [String: Passage.OnlyForTest.InMemoryPhoneVerificationCode] = [:]
+
+        // MARK: Email Codes
+
+        @discardableResult
+        public func createEmailCode(
+            for user: any User,
+            email: String,
+            codeHash: String,
+            expiresAt: Date
+        ) async throws -> any EmailVerificationCode {
+            guard let userId = user.id?.description else {
+                throw PassageError.unexpected(message: "User ID is missing")
+            }
+
+            let key = "\(email):\(codeHash)"
+            let code = Passage.OnlyForTest.InMemoryEmailVerificationCode(
+                userId: userId,
+                email: email,
+                codeHash: codeHash,
+                expiresAt: expiresAt,
+                failedAttempts: 0
+            )
+            emailCodes[key] = code
+            return code
+        }
+
+        public func findEmailCode(
+            forEmail email: String,
+            codeHash: String
+        ) async throws -> (any EmailVerificationCode)? {
+            let key = "\(email):\(codeHash)"
+            return emailCodes[key]
+        }
+
+        public func invalidateEmailCodes(forEmail email: String) async throws {
+            emailCodes = emailCodes.filter { !$0.key.hasPrefix("\(email):") }
+        }
+
+        public func incrementFailedAttempts(for code: any EmailVerificationCode) async throws {
+            let key = "\(code.email):\(code.codeHash)"
+            emailCodes[key]?.failedAttempts += 1
+        }
+
+        // MARK: Phone Codes
+
+        @discardableResult
+        public func createPhoneCode(
+            for user: any User,
+            phone: String,
+            codeHash: String,
+            expiresAt: Date
+        ) async throws -> any PhoneVerificationCode {
+            guard let userId = user.id?.description else {
+                throw PassageError.unexpected(message: "User ID is missing")
+            }
+
+            let key = "\(phone):\(codeHash)"
+            let code = Passage.OnlyForTest.InMemoryPhoneVerificationCode(
+                userId: userId,
+                phone: phone,
+                codeHash: codeHash,
+                expiresAt: expiresAt,
+                failedAttempts: 0
+            )
+            phoneCodes[key] = code
+            return code
+        }
+
+        public func findPhoneCode(
+            forPhone phone: String,
+            codeHash: String
+        ) async throws -> (any PhoneVerificationCode)? {
+            let key = "\(phone):\(codeHash)"
+            return phoneCodes[key]
+        }
+
+        public func invalidatePhoneCodes(forPhone phone: String) async throws {
+            phoneCodes = phoneCodes.filter { !$0.key.hasPrefix("\(phone):") }
+        }
+
+        public func incrementFailedAttempts(for code: any PhoneVerificationCode) async throws {
+            let key = "\(code.phone):\(code.codeHash)"
+            phoneCodes[key]?.failedAttempts += 1
+        }
+    }
+
+}
+
+// MARK: - InMemoryRestorationStore
+
+public extension Passage.OnlyForTest.InMemoryStore {
+
+    final class InMemoryRestorationStore: Passage.RestorationCodeStore, @unchecked Sendable {
+
+        private var emailResetCodes: [String: Passage.OnlyForTest.InMemoryEmailPasswordResetCode] = [:]
+        private var phoneResetCodes: [String: Passage.OnlyForTest.InMemoryPhonePasswordResetCode] = [:]
+
+        // MARK: Email Reset Codes
+
+        @discardableResult
+        public func createPasswordResetCode(
+            for user: any User,
+            email: String,
+            codeHash: String,
+            expiresAt: Date
+        ) async throws -> any EmailPasswordResetCode {
+            guard let userId = user.id?.description else {
+                throw PassageError.unexpected(message: "User ID is missing")
+            }
+
+            let key = "\(email):\(codeHash)"
+            let code = Passage.OnlyForTest.InMemoryEmailPasswordResetCode(
+                userId: userId,
+                email: email,
+                codeHash: codeHash,
+                expiresAt: expiresAt,
+                failedAttempts: 0
+            )
+            emailResetCodes[key] = code
+            return code
+        }
+
+        public func findPasswordResetCode(
+            forEmail email: String,
+            codeHash: String
+        ) async throws -> (any EmailPasswordResetCode)? {
+            let key = "\(email):\(codeHash)"
+            return emailResetCodes[key]
+        }
+
+        public func invalidatePasswordResetCodes(forEmail email: String) async throws {
+            emailResetCodes = emailResetCodes.filter { !$0.key.hasPrefix("\(email):") }
+        }
+
+        public func incrementFailedAttempts(for code: any EmailPasswordResetCode) async throws {
+            let key = "\(code.email):\(code.codeHash)"
+            emailResetCodes[key]?.failedAttempts += 1
+        }
+
+        // MARK: Phone Reset Codes
+
+        @discardableResult
+        public func createPasswordResetCode(
+            for user: any User,
+            phone: String,
+            codeHash: String,
+            expiresAt: Date
+        ) async throws -> any PhonePasswordResetCode {
+            guard let userId = user.id?.description else {
+                throw PassageError.unexpected(message: "User ID is missing")
+            }
+
+            let key = "\(phone):\(codeHash)"
+            let code = Passage.OnlyForTest.InMemoryPhonePasswordResetCode(
+                userId: userId,
+                phone: phone,
+                codeHash: codeHash,
+                expiresAt: expiresAt,
+                failedAttempts: 0
+            )
+            phoneResetCodes[key] = code
+            return code
+        }
+
+        public func findPasswordResetCode(
+            forPhone phone: String,
+            codeHash: String
+        ) async throws -> (any PhonePasswordResetCode)? {
+            let key = "\(phone):\(codeHash)"
+            return phoneResetCodes[key]
+        }
+
+        public func invalidatePasswordResetCodes(forPhone phone: String) async throws {
+            phoneResetCodes = phoneResetCodes.filter { !$0.key.hasPrefix("\(phone):") }
+        }
+
+        public func incrementFailedAttempts(for code: any PhonePasswordResetCode) async throws {
+            let key = "\(code.phone):\(code.codeHash)"
+            phoneResetCodes[key]?.failedAttempts += 1
+        }
+    }
+}
