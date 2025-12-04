@@ -7,19 +7,13 @@ extension Passage.Configuration {
 
     public struct Restoration: Sendable {
 
-        /// Preferred delivery channel for password reset when user is looked up by username
-        public enum PreferredDelivery: Sendable {
-            case email
-            case phone
-        }
-
-        let preferredDelivery: PreferredDelivery
+        let preferredDelivery: Passage.DeliveryType
         let email: Email
         let phone: Phone
         let useQueues: Bool
 
         public init(
-            preferredDelivery: PreferredDelivery = .email,
+            preferredDelivery: Passage.DeliveryType = .email,
             email: Email = .init(),
             phone: Phone = .init(),
             useQueues: Bool = false
@@ -80,61 +74,21 @@ extension Passage.Configuration.Restoration {
             }
         }
 
-        public struct WebForm: Sendable {
-
-            public struct Route: Sendable {
-                public static let `default` = Route(path: "password", "reset")
-                let path: [PathComponent]
-                public init(path: PathComponent...) {
-                    self.path = path
-                }
-                public init(path: [PathComponent]) {
-                    self.path = path
-                }
-            }
-
-            public static let `default` = WebForm(
-                enabled: true,
-                template: "password-reset-form",
-                route: .default
-            )
-
-            let enabled: Bool
-            let template: String
-            let route: Route
-
-            public init(
-                enabled: Bool = true,
-                template: String = "password-reset-form",
-                route: Route = .default
-            ) {
-                self.enabled = enabled
-                self.template = template
-                self.route = route
-            }
-        }
-
         let routes: Routes
         let codeLength: Int
         let codeExpiration: TimeInterval
         let maxAttempts: Int
-        let resetLinkBaseURL: URL?
-        let webForm: WebForm
 
         public init(
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 15 * 60,  // 15 minutes
             maxAttempts: Int = 3,
-            resetLinkBaseURL: URL? = nil,
-            webForm: WebForm = .default
         ) {
             self.routes = routes
             self.codeLength = codeLength
             self.codeExpiration = codeExpiration
             self.maxAttempts = maxAttempts
-            self.resetLinkBaseURL = resetLinkBaseURL
-            self.webForm = webForm
         }
     }
 
@@ -214,24 +168,9 @@ extension Passage.Configuration {
         origin.appending(path: (routes.group + restoration.email.routes.verify.path).string)
     }
 
-    var emailPasswordResetFormURL: URL {
-        origin.appending(path: (routes.group + restoration.email.webForm.route.path).string)
-    }
-
-    /// URL for password reset link in email.
-    /// If resetLinkBaseURL is set, uses that; otherwise uses the web form route if enabled,
-    /// or falls back to the API verify endpoint.
+    /// Constructs the email password reset link URL with the given code and email as query parameters.
     func emailPasswordResetLinkURL(code: String, email: String) -> URL {
-        let baseURL: URL
-        if let customURL = restoration.email.resetLinkBaseURL {
-            baseURL = customURL
-        } else if restoration.email.webForm.enabled {
-            baseURL = emailPasswordResetFormURL
-        } else {
-            baseURL = emailPasswordResetURL
-        }
-
-        return baseURL.appending(queryItems: [
+        return emailPasswordResetURL.appending(queryItems: [
             URLQueryItem(name: "code", value: code),
             URLQueryItem(name: "email", value: email)
         ])

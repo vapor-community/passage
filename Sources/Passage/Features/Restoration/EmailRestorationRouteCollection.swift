@@ -3,10 +3,10 @@ import Vapor
 struct EmailRestorationRouteCollection: RouteCollection {
 
     let routes: Passage.Configuration.Restoration.Email.Routes
-    let groupPath: [PathComponent]
+    let group: [PathComponent]
 
     func boot(routes builder: any RoutesBuilder) throws {
-        let grouped = groupPath.isEmpty ? builder : builder.grouped(groupPath)
+        let grouped = group.isEmpty ? builder : builder.grouped(group)
 
         grouped.post(routes.request.path, use: request)
         grouped.post(routes.verify.path, use: verify)
@@ -31,7 +31,7 @@ extension EmailRestorationRouteCollection {
 
             return req.views.handleResetPasswordRequestFormSuccess(
                 of: view,
-                at: routes.request.path,
+                at: group + routes.request.path,
             )
         } catch {
             guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.passwordResetRequest else {
@@ -40,7 +40,7 @@ extension EmailRestorationRouteCollection {
 
             return req.views.handleResetPasswordRequestFormFailure(
                 of: view,
-                at: routes.request.path,
+                at: group + routes.request.path,
                 with: error
             )
         }
@@ -72,7 +72,7 @@ extension EmailRestorationRouteCollection {
 
             return req.views.handleResetPasswordConfirmFormSuccess(
                 of: view,
-                at: routes.verify.path,
+                at: group + routes.verify.path,
             )
         } catch {
             guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.passwordResetConfirm else {
@@ -81,7 +81,7 @@ extension EmailRestorationRouteCollection {
 
             return req.views.handleResetPasswordConfirmFormFailure(
                 of: view,
-                at: routes.verify.path,
+                at: group + routes.verify.path,
                 with: error
             )
         }

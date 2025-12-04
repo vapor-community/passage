@@ -3,10 +3,10 @@ import Vapor
 struct EmailVerificationRouteCollection: RouteCollection {
 
     let config: Passage.Configuration.Verification.Email
-    let groupPath: [PathComponent]
+    let group: [PathComponent]
 
     func boot(routes builder: any RoutesBuilder) throws {
-        let grouped = groupPath.isEmpty ? builder : builder.grouped(groupPath)
+        let grouped = group.isEmpty ? builder : builder.grouped(group)
 
         grouped.post(config.routes.verify.path, use: send)
         grouped.get(config.routes.verify.path, use: verify)

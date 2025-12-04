@@ -1,5 +1,7 @@
 import Foundation
 
+// MARK: - Services
+
 public extension Passage {
 
     struct Services: Sendable {
@@ -36,8 +38,20 @@ public extension Passage {
             self.federatedLogin = federatedLogin
         }
     }
+}
+
+// MARK: - Delivery Type
+
+public extension Passage {
+
+    enum DeliveryType: Sendable {
+        case email
+        case phone
+    }
 
 }
+
+// MARK: - Service Accessors
 
 extension Passage {
 

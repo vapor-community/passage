@@ -31,12 +31,12 @@ public struct Passage: Sendable {
             // Register email verification routes if delivery is provided
             try app.register(collection: EmailVerificationRouteCollection(
                 config: configuration.verification.email,
-                groupPath: configuration.routes.group
+                group: configuration.routes.group
             ))
             // Register email password reset routes if delivery is provided
             try app.register(collection: EmailRestorationRouteCollection(
                 routes: configuration.restoration.email.routes,
-                groupPath: configuration.routes.group
+                group: configuration.routes.group
             ))
             // Register password reset web form if enabled
 //            if configuration.restoration.email.webForm.enabled {

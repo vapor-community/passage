@@ -28,12 +28,22 @@ struct ViewsRouteCollection: RouteCollection {
                     for: .email
                 )
             }
+            grouped.get(restoration.phone.routes.request.path) { req in
+                try await req.views.renderResetPasswordRequestView(
+                    for: .phone
+                )
+            }
         }
 
         if let view = config.passwordResetConfirm {
             grouped.get(restoration.email.routes.verify.path) { req in
                 try await req.views.renderResetPasswordConfirmView(
                     for: .email
+                )
+            }
+            grouped.get(restoration.phone.routes.verify.path) { req in
+                try await req.views.renderResetPasswordConfirmView(
+                    for: .phone
                 )
             }
         }

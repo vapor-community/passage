@@ -34,7 +34,7 @@ extension IdentityRouteCollection {
 
             return req.views.handleRegisterFormSuccess(
                 of: view,
-                at: routes.register.path,
+                at: routes.group + routes.register.path,
             )
 
         } catch {
@@ -44,7 +44,7 @@ extension IdentityRouteCollection {
 
             return req.views.handleRegisterFormFailure(
                 of: view,
-                at: routes.register.path,
+                at: routes.group + routes.register.path,
                 with: error
             )
         }
@@ -66,7 +66,7 @@ extension IdentityRouteCollection {
 
             return req.views.handleLoginFormSuccess(
                 of: view,
-                at: routes.login.path,
+                at: routes.group + routes.login.path,
             )
         } catch {
             guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.login else {
@@ -75,7 +75,7 @@ extension IdentityRouteCollection {
 
             return req.views.handleLoginFormFailure(
                 of: view,
-                at: routes.login.path,
+                at: routes.group + routes.login.path,
                 with: error
             )
         }
