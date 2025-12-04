@@ -1,0 +1,196 @@
+import Testing
+import Foundation
+import JWTKit
+@testable import Passage
+
+@Suite("Access Token Tests")
+struct AccessTokenTests {
+
+    // MARK: - Initialization Tests
+
+    @Test("Access token initialization with all claims")
+    func initializationWithAllClaims() {
+        let issuedAt = Date()
+        let expiresAt = Date(timeIntervalSinceNow: 3600)
+
+        let token = AccessToken(
+            userId: "user123",
+            issuedAt: issuedAt,
+            expiresAt: expiresAt,
+            issuer: "https://example.com",
+            audience: "api.example.com",
+            scope: "read write"
+        )
+
+        #expect(token.subject.value == "user123")
+        #expect(token.issuedAt.value.timeIntervalSince1970 == issuedAt.timeIntervalSince1970)
+        #expect(token.expiration.value.timeIntervalSince1970 == expiresAt.timeIntervalSince1970)
+        #expect(token.issuer?.value == "https://example.com")
+        #expect(token.audience?.value.first == "api.example.com")
+        #expect(token.scope == "read write")
+    }
+
+    @Test("Access token initialization without optional claims")
+    func initializationWithoutOptionalClaims() {
+        let expiresAt = Date(timeIntervalSinceNow: 3600)
+
+        let token = AccessToken(
+            userId: "user123",
+            expiresAt: expiresAt,
+            issuer: nil,
+            audience: nil,
+            scope: nil
+        )
+
+        #expect(token.subject.value == "user123")
+        #expect(token.issuer == nil)
+        #expect(token.audience == nil)
+        #expect(token.scope == nil)
+    }
+
+    @Test("Access token default issuedAt")
+    func defaultIssuedAt() {
+        let beforeCreation = Date()
+        let expiresAt = Date(timeIntervalSinceNow: 3600)
+
+        let token = AccessToken(
+            userId: "user123",
+            expiresAt: expiresAt,
+            issuer: nil,
+            audience: nil,
+            scope: nil
+        )
+
+        let afterCreation = Date()
+
+        #expect(token.issuedAt.value >= beforeCreation)
+        #expect(token.issuedAt.value <= afterCreation)
+    }
+
+    // MARK: - Claims Tests
+
+    @Test("Access token subject claim", arguments: [
+        "user123",
+        "user-abc-123",
+        "test-user-456"
+    ])
+    func subjectClaim(userId: String) {
+        let token = AccessToken(
+            userId: userId,
+            expiresAt: Date(timeIntervalSinceNow: 3600),
+            issuer: nil,
+            audience: nil,
+            scope: nil
+        )
+
+        #expect(token.subject.value == userId)
+    }
+
+    @Test("Access token expiration claim")
+    func expirationClaim() {
+        let expirationDate = Date(timeIntervalSinceNow: 7200)
+
+        let token = AccessToken(
+            userId: "user123",
+            expiresAt: expirationDate,
+            issuer: nil,
+            audience: nil,
+            scope: nil
+        )
+
+        #expect(token.expiration.value.timeIntervalSince1970 == expirationDate.timeIntervalSince1970)
+    }
+
+    @Test("Access token issuedAt claim")
+    func issuedAtClaim() {
+        let issuedAtDate = Date(timeIntervalSinceNow: -100)
+
+        let token = AccessToken(
+            userId: "user123",
+            issuedAt: issuedAtDate,
+            expiresAt: Date(timeIntervalSinceNow: 3600),
+            issuer: nil,
+            audience: nil,
+            scope: nil
+        )
+
+        #expect(token.issuedAt.value.timeIntervalSince1970 == issuedAtDate.timeIntervalSince1970)
+    }
+
+    @Test("Access token issuer claim", arguments: [
+        "https://auth.example.com",
+        "https://example.com",
+        nil
+    ])
+    func issuerClaim(issuer: String?) {
+        let token = AccessToken(
+            userId: "user123",
+            expiresAt: Date(timeIntervalSinceNow: 3600),
+            issuer: issuer,
+            audience: nil,
+            scope: nil
+        )
+
+        #expect(token.issuer?.value == issuer)
+    }
+
+    @Test("Access token audience claim", arguments: [
+        "api.example.com",
+        "service.example.com",
+        nil
+    ])
+    func audienceClaim(audience: String?) {
+        let token = AccessToken(
+            userId: "user123",
+            expiresAt: Date(timeIntervalSinceNow: 3600),
+            issuer: nil,
+            audience: audience,
+            scope: nil
+        )
+
+        #expect(token.audience?.value.first == audience)
+    }
+
+    @Test("Access token scope claim", arguments: [
+        "read write admin",
+        "read",
+        nil
+    ])
+    func scopeClaim(scope: String?) {
+        let token = AccessToken(
+            userId: "user123",
+            expiresAt: Date(timeIntervalSinceNow: 3600),
+            issuer: nil,
+            audience: nil,
+            scope: scope
+        )
+
+        #expect(token.scope == scope)
+    }
+
+    // MARK: - Multiple Tokens Tests
+
+    @Test("Different access tokens have different data")
+    func differentTokensHaveDifferentData() {
+        let token1 = AccessToken(
+            userId: "user1",
+            expiresAt: Date(timeIntervalSinceNow: 3600),
+            issuer: "issuer1",
+            audience: "audience1",
+            scope: "read"
+        )
+
+        let token2 = AccessToken(
+            userId: "user2",
+            expiresAt: Date(timeIntervalSinceNow: 7200),
+            issuer: "issuer2",
+            audience: "audience2",
+            scope: "write"
+        )
+
+        #expect(token1.subject.value != token2.subject.value)
+        #expect(token1.issuer?.value != token2.issuer?.value)
+        #expect(token1.audience?.value.first != token2.audience?.value.first)
+        #expect(token1.scope != token2.scope)
+    }
+}

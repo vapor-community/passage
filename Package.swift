@@ -35,6 +35,14 @@ let package = Package(
             dependencies: [
                 "Passage",
             ]
+        ),
+        .testTarget(
+            name: "PassageTests",
+            dependencies: [
+                "Passage",
+                "PassageOnlyForTest",
+                .product(name: "VaporTesting", package: "vapor"),
+            ]
         )
     ]
 )

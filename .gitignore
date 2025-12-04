@@ -10,3 +10,7 @@ db.sqlite
 .env.*
 !.env.example
 .claude/settings.local.json
+
+# Coverage
+coverage-report/
+coverage.lcov

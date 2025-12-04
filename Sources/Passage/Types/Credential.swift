@@ -1,4 +1,4 @@
-public enum Credential {
+public enum Credential: Sendable {
     case email(email: String, passwordHash: String)
     case phone(phone: String, passwordHash: String)
     case username(username: String, passwordHash: String)
