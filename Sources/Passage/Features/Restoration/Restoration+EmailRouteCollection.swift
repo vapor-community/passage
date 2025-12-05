@@ -1,23 +1,27 @@
 import Vapor
 
-struct EmailRestorationRouteCollection: RouteCollection {
+extension Passage.Restoration {
 
-    let routes: Passage.Configuration.Restoration.Email.Routes
-    let group: [PathComponent]
+    struct EmailRouteCollection: Vapor.RouteCollection {
 
-    func boot(routes builder: any RoutesBuilder) throws {
-        let grouped = group.isEmpty ? builder : builder.grouped(group)
+        let routes: Passage.Configuration.Restoration.Email.Routes
+        let group: [PathComponent]
 
-        grouped.post(routes.request.path, use: request)
-        grouped.post(routes.verify.path, use: verify)
-        grouped.post(routes.resend.path, use: resend)
+        func boot(routes builder: any RoutesBuilder) throws {
+            let grouped = group.isEmpty ? builder : builder.grouped(group)
+
+            grouped.post(routes.request.path, use: request)
+            grouped.post(routes.verify.path, use: verify)
+            grouped.post(routes.resend.path, use: resend)
+        }
+
     }
 
 }
 
 // MARK: - Request Reset
 
-extension EmailRestorationRouteCollection {
+extension Passage.Restoration.EmailRouteCollection {
 
     func request(_ req: Request) async throws -> Response {
         do {
@@ -50,7 +54,7 @@ extension EmailRestorationRouteCollection {
 
 // MARK: - Verify and Reset Password
 
-extension EmailRestorationRouteCollection {
+extension Passage.Restoration.EmailRouteCollection {
 
     func verify(_ req: Request) async throws -> Response {
         do {
@@ -91,7 +95,7 @@ extension EmailRestorationRouteCollection {
 
 // MARK: - Resend
 
-extension EmailRestorationRouteCollection {
+extension Passage.Restoration.EmailRouteCollection {
 
     func resend(_ req: Request) async throws -> HTTPStatus {
         let form = try req.decodeContentAsFormOfType(req.contracts.emailPasswordResetResendForm)

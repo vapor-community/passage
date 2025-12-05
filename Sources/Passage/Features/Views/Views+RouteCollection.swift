@@ -1,13 +1,15 @@
 import Vapor
 
-struct ViewsRouteCollection: RouteCollection {
+extension Passage.Views {
 
-    let config: Passage.Configuration.Views
-    let routes: Passage.Configuration.Routes
-    let restoration: Passage.Configuration.Restoration
-    let group: [PathComponent]
+    struct RouteCollection: Vapor.RouteCollection {
 
-    func boot(routes builder: any RoutesBuilder) throws {
+        let config: Passage.Configuration.Views
+        let routes: Passage.Configuration.Routes
+        let restoration: Passage.Configuration.Restoration
+        let group: [PathComponent]
+
+        func boot(routes builder: any RoutesBuilder) throws {
         let grouped = group.isEmpty ? builder : builder.grouped(group)
 
         if let _ = config.register {
@@ -47,6 +49,8 @@ struct ViewsRouteCollection: RouteCollection {
                 )
             }
         }
+    }
+
     }
 
 }

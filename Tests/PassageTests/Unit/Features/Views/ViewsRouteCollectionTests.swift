@@ -7,7 +7,7 @@ struct ViewsRouteCollectionTests {
 
     // MARK: - Initialization Tests
 
-    @Test("ViewsRouteCollection initialization")
+    @Test("Passage.Views.RouteCollection initialization")
     func routeCollectionInitialization() {
         let theme = Passage.Views.Theme(colors: .defaultLight)
         let loginView = Passage.Configuration.Views.LoginView(
@@ -24,7 +24,7 @@ struct ViewsRouteCollectionTests {
         let routesConfig = Passage.Configuration.Routes()
         let restorationConfig = Passage.Configuration.Restoration()
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,
@@ -34,7 +34,7 @@ struct ViewsRouteCollectionTests {
         #expect(collection.group.isEmpty)
     }
 
-    @Test("ViewsRouteCollection initialization with custom group")
+    @Test("Passage.Views.RouteCollection initialization with custom group")
     func routeCollectionWithCustomGroup() {
         let theme = Passage.Views.Theme(colors: .defaultLight)
         let loginView = Passage.Configuration.Views.LoginView(
@@ -52,7 +52,7 @@ struct ViewsRouteCollectionTests {
         let restorationConfig = Passage.Configuration.Restoration()
         let groupPath: [PathComponent] = ["auth", "views"]
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,
@@ -64,7 +64,7 @@ struct ViewsRouteCollectionTests {
         #expect(collection.group[1] == PathComponent.constant("views"))
     }
 
-    @Test("ViewsRouteCollection stores configuration references")
+    @Test("Passage.Views.RouteCollection stores configuration references")
     func routeCollectionStoresConfig() {
         let theme = Passage.Views.Theme(colors: .defaultLight)
         let registerView = Passage.Configuration.Views.RegisterView(
@@ -83,7 +83,7 @@ struct ViewsRouteCollectionTests {
         )
         let restorationConfig = Passage.Configuration.Restoration()
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,
@@ -94,7 +94,7 @@ struct ViewsRouteCollectionTests {
         #expect(collection.routes.register.path.count == 2)
     }
 
-    @Test("ViewsRouteCollection with all view types configured")
+    @Test("Passage.Views.RouteCollection with all view types configured")
     func routeCollectionWithAllViews() {
         let theme = Passage.Views.Theme(colors: .oceanLight)
         let loginView = Passage.Configuration.Views.LoginView(
@@ -125,7 +125,7 @@ struct ViewsRouteCollectionTests {
         let routesConfig = Passage.Configuration.Routes()
         let restorationConfig = Passage.Configuration.Restoration()
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,
@@ -138,7 +138,7 @@ struct ViewsRouteCollectionTests {
         #expect(collection.config.passwordResetConfirm != nil)
     }
 
-    @Test("ViewsRouteCollection with no views configured")
+    @Test("Passage.Views.RouteCollection with no views configured")
     func routeCollectionWithNoViews() {
         let viewsConfig = Passage.Configuration.Views(
             register: nil,
@@ -149,7 +149,7 @@ struct ViewsRouteCollectionTests {
         let routesConfig = Passage.Configuration.Routes()
         let restorationConfig = Passage.Configuration.Restoration()
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,
@@ -164,7 +164,7 @@ struct ViewsRouteCollectionTests {
 
     // MARK: - Protocol Conformance Tests
 
-    @Test("ViewsRouteCollection conforms to RouteCollection")
+    @Test("Passage.Views.RouteCollection conforms to RouteCollection")
     func routeCollectionConformsToProtocol() {
         let theme = Passage.Views.Theme(colors: .defaultLight)
         let loginView = Passage.Configuration.Views.LoginView(
@@ -181,7 +181,7 @@ struct ViewsRouteCollectionTests {
         let routesConfig = Passage.Configuration.Routes()
         let restorationConfig = Passage.Configuration.Restoration()
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,
@@ -193,7 +193,7 @@ struct ViewsRouteCollectionTests {
 
     // MARK: - Configuration Integration Tests
 
-    @Test("ViewsRouteCollection with custom restoration routes")
+    @Test("Passage.Views.RouteCollection with custom restoration routes")
     func routeCollectionWithCustomRestorationRoutes() {
         let theme = Passage.Views.Theme(colors: .forestLight)
         let resetRequestView = Passage.Configuration.Views.PasswordResetRequestView(
@@ -216,7 +216,7 @@ struct ViewsRouteCollectionTests {
             )
         )
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,
@@ -227,7 +227,7 @@ struct ViewsRouteCollectionTests {
         #expect(collection.restoration.email.routes.verify.path.count == 3)
     }
 
-    @Test("ViewsRouteCollection group path variations", arguments: [
+    @Test("Passage.Views.RouteCollection group path variations", arguments: [
         ([], "empty group"),
         (["auth"] as [PathComponent], "single component"),
         (["api", "v1", "auth"] as [PathComponent], "multiple components"),
@@ -243,7 +243,7 @@ struct ViewsRouteCollectionTests {
         let routesConfig = Passage.Configuration.Routes()
         let restorationConfig = Passage.Configuration.Restoration()
 
-        let collection = ViewsRouteCollection(
+        let collection = Passage.Views.RouteCollection(
             config: viewsConfig,
             routes: routesConfig,
             restoration: restorationConfig,

@@ -7,10 +7,10 @@ struct PhoneRestorationRouteCollectionTests {
 
     // MARK: - Initialization Tests
 
-    @Test("PhoneRestorationRouteCollection initialization with default group")
+    @Test("Passage.Restoration.PhoneRouteCollection initialization with default group")
     func initializationWithDefaultGroup() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -18,11 +18,11 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(collection.groupPath.isEmpty)
     }
 
-    @Test("PhoneRestorationRouteCollection initialization with custom group")
+    @Test("Passage.Restoration.PhoneRouteCollection initialization with custom group")
     func initializationWithCustomGroup() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
         let groupPath: [PathComponent] = ["auth", "password-reset"]
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: groupPath
         )
@@ -30,7 +30,7 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(collection.groupPath.count == 2)
     }
 
-    @Test("PhoneRestorationRouteCollection stores routes configuration")
+    @Test("Passage.Restoration.PhoneRouteCollection stores routes configuration")
     func storesRoutesConfiguration() {
         let requestRoute = Passage.Configuration.Restoration.Phone.Routes.Request(path: "request")
         let verifyRoute = Passage.Configuration.Restoration.Phone.Routes.Verify(path: "verify")
@@ -41,7 +41,7 @@ struct PhoneRestorationRouteCollectionTests {
             resend: resendRoute
         )
 
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -53,10 +53,10 @@ struct PhoneRestorationRouteCollectionTests {
 
     // MARK: - Group Path Tests
 
-    @Test("PhoneRestorationRouteCollection with empty group")
+    @Test("Passage.Restoration.PhoneRouteCollection with empty group")
     func emptyGroup() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -64,10 +64,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(collection.groupPath.isEmpty)
     }
 
-    @Test("PhoneRestorationRouteCollection with single component group")
+    @Test("Passage.Restoration.PhoneRouteCollection with single component group")
     func singleComponentGroup() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: ["reset"]
         )
@@ -75,10 +75,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(collection.groupPath.count == 1)
     }
 
-    @Test("PhoneRestorationRouteCollection with multiple components")
+    @Test("Passage.Restoration.PhoneRouteCollection with multiple components")
     func multipleComponentsGroup() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: ["api", "v1", "auth", "phone", "reset"]
         )
@@ -86,10 +86,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(collection.groupPath.count == 5)
     }
 
-    @Test("PhoneRestorationRouteCollection with versioned group")
+    @Test("Passage.Restoration.PhoneRouteCollection with versioned group")
     func versionedGroup() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: ["v1", "password", "reset"]
         )
@@ -99,10 +99,10 @@ struct PhoneRestorationRouteCollectionTests {
 
     // MARK: - Route Configuration Tests
 
-    @Test("PhoneRestorationRouteCollection with default routes")
+    @Test("Passage.Restoration.PhoneRouteCollection with default routes")
     func defaultRoutes() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -112,10 +112,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(collection.routes.resend.path.count > 0)
     }
 
-    @Test("PhoneRestorationRouteCollection request route path")
+    @Test("Passage.Restoration.PhoneRouteCollection request route path")
     func requestRoutePath() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -123,10 +123,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(!collection.routes.request.path.isEmpty)
     }
 
-    @Test("PhoneRestorationRouteCollection verify route path")
+    @Test("Passage.Restoration.PhoneRouteCollection verify route path")
     func verifyRoutePath() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -134,10 +134,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(!collection.routes.verify.path.isEmpty)
     }
 
-    @Test("PhoneRestorationRouteCollection resend route path")
+    @Test("Passage.Restoration.PhoneRouteCollection resend route path")
     func resendRoutePath() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -147,7 +147,7 @@ struct PhoneRestorationRouteCollectionTests {
 
     // MARK: - Multiple Instance Tests
 
-    @Test("Multiple PhoneRestorationRouteCollection instances are independent")
+    @Test("Multiple Passage.Restoration.PhoneRouteCollection instances are independent")
     func multipleInstancesIndependent() {
         let requestRoute1 = Passage.Configuration.Restoration.Phone.Routes.Request(path: "request1")
         let verifyRoute1 = Passage.Configuration.Restoration.Phone.Routes.Verify(path: "verify1")
@@ -167,29 +167,29 @@ struct PhoneRestorationRouteCollectionTests {
             resend: resendRoute2
         )
 
-        let collection1 = PhoneRestorationRouteCollection(routes: routes1, groupPath: ["auth1"])
-        let collection2 = PhoneRestorationRouteCollection(routes: routes2, groupPath: ["auth2"])
+        let collection1 = Passage.Restoration.PhoneRouteCollection(routes: routes1, groupPath: ["auth1"])
+        let collection2 = Passage.Restoration.PhoneRouteCollection(routes: routes2, groupPath: ["auth2"])
 
         #expect(collection1.routes.request.path != collection2.routes.request.path)
         #expect(collection1.groupPath != collection2.groupPath)
     }
 
-    @Test("PhoneRestorationRouteCollection can be instantiated multiple times")
+    @Test("Passage.Restoration.PhoneRouteCollection can be instantiated multiple times")
     func multipleInstantiations() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
 
-        let collection1 = PhoneRestorationRouteCollection(routes: routes, groupPath: [])
-        let collection2 = PhoneRestorationRouteCollection(routes: routes, groupPath: [])
+        let collection1 = Passage.Restoration.PhoneRouteCollection(routes: routes, groupPath: [])
+        let collection2 = Passage.Restoration.PhoneRouteCollection(routes: routes, groupPath: [])
 
         #expect(collection1.groupPath == collection2.groupPath)
     }
 
     // MARK: - Protocol Conformance Tests
 
-    @Test("PhoneRestorationRouteCollection conforms to RouteCollection")
+    @Test("Passage.Restoration.PhoneRouteCollection conforms to RouteCollection")
     func conformsToRouteCollection() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -200,30 +200,30 @@ struct PhoneRestorationRouteCollectionTests {
 
     // MARK: - Group Path Component Tests
 
-    @Test("PhoneRestorationRouteCollection with different path component types")
+    @Test("Passage.Restoration.PhoneRouteCollection with different path component types")
     func differentPathComponentTypes() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
 
         // String path components
-        let collection1 = PhoneRestorationRouteCollection(
+        let collection1 = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: ["auth", "reset"]
         )
         #expect(collection1.groupPath.count == 2)
 
         // Constant path components
-        let collection2 = PhoneRestorationRouteCollection(
+        let collection2 = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: [.constant("auth"), .constant("reset")]
         )
         #expect(collection2.groupPath.count == 2)
     }
 
-    @Test("PhoneRestorationRouteCollection preserves group order")
+    @Test("Passage.Restoration.PhoneRouteCollection preserves group order")
     func preservesGroupOrder() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
         let groupPath: [PathComponent] = ["first", "second", "third"]
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: groupPath
         )
@@ -233,7 +233,7 @@ struct PhoneRestorationRouteCollectionTests {
 
     // MARK: - Configuration Preservation Tests
 
-    @Test("PhoneRestorationRouteCollection preserves all route settings")
+    @Test("Passage.Restoration.PhoneRouteCollection preserves all route settings")
     func preservesAllRouteSettings() {
         let requestRoute = Passage.Configuration.Restoration.Phone.Routes.Request(path: "req")
         let verifyRoute = Passage.Configuration.Restoration.Phone.Routes.Verify(path: "ver")
@@ -244,7 +244,7 @@ struct PhoneRestorationRouteCollectionTests {
             resend: resendRoute
         )
 
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: ["phone"]
         )
@@ -255,10 +255,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(collection.groupPath == ["phone"])
     }
 
-    @Test("PhoneRestorationRouteCollection with nested path groups")
+    @Test("Passage.Restoration.PhoneRouteCollection with nested path groups")
     func nestedPathGroups() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: ["api", "v2", "auth", "phone", "password-reset"]
         )
@@ -268,10 +268,10 @@ struct PhoneRestorationRouteCollectionTests {
 
     // MARK: - Route Path Tests
 
-    @Test("PhoneRestorationRouteCollection has three routes")
+    @Test("Passage.Restoration.PhoneRouteCollection has three routes")
     func hasThreeRoutes() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -282,10 +282,10 @@ struct PhoneRestorationRouteCollectionTests {
         #expect(!collection.routes.resend.path.isEmpty)
     }
 
-    @Test("PhoneRestorationRouteCollection route paths are distinct")
+    @Test("Passage.Restoration.PhoneRouteCollection route paths are distinct")
     func routePathsDistinct() {
         let routes = Passage.Configuration.Restoration.Phone.Routes()
-        let collection = PhoneRestorationRouteCollection(
+        let collection = Passage.Restoration.PhoneRouteCollection(
             routes: routes,
             groupPath: []
         )
@@ -305,7 +305,7 @@ struct PhoneRestorationRouteCollectionTests {
     @Test("Phone and Email route collections are independent")
     func phoneAndEmailIndependent() {
         let phoneRoutes = Passage.Configuration.Restoration.Phone.Routes()
-        let phoneCollection = PhoneRestorationRouteCollection(
+        let phoneCollection = Passage.Restoration.PhoneRouteCollection(
             routes: phoneRoutes,
             groupPath: ["phone"]
         )

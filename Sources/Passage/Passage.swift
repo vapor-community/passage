@@ -25,16 +25,16 @@ public struct Passage: Sendable {
 
         try await app.jwt.keys.add(jwksJSON: configuration.jwt.jwks.json)
 
-        try app.register(collection: IdentityRouteCollection(routes: configuration.routes))
+        try app.register(collection: Identity.RouteCollection(routes: configuration.routes))
 
         if let _ = services.emailDelivery {
             // Register email verification routes if delivery is provided
-            try app.register(collection: EmailVerificationRouteCollection(
+            try app.register(collection: Verification.EmailRouteCollection(
                 config: configuration.verification.email,
                 group: configuration.routes.group
             ))
             // Register email password reset routes if delivery is provided
-            try app.register(collection: EmailRestorationRouteCollection(
+            try app.register(collection: Restoration.EmailRouteCollection(
                 routes: configuration.restoration.email.routes,
                 group: configuration.routes.group
             ))
@@ -49,12 +49,12 @@ public struct Passage: Sendable {
 
         if let _ = services.phoneDelivery {
             // Register phone verification routes if delivery is provided
-            try app.register(collection: PhoneVerificationRouteCollection(
+            try app.register(collection: Verification.PhoneRouteCollection(
                 config: configuration.verification.phone,
                 groupPath: configuration.routes.group
             ))
             // Register phone password reset routes if delivery is provided
-            try app.register(collection: PhoneRestorationRouteCollection(
+            try app.register(collection: Restoration.PhoneRouteCollection(
                 routes: configuration.restoration.phone.routes,
                 groupPath: configuration.routes.group
             ))
@@ -63,7 +63,7 @@ public struct Passage: Sendable {
         //
         if configuration.views.enabled {
             try Views.registerLeafTempleates(on: app)
-            try app.register(collection: ViewsRouteCollection(
+            try app.register(collection: Views.RouteCollection(
                 config: configuration.views,
                 routes: configuration.routes,
                 restoration: configuration.restoration,

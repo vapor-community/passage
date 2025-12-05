@@ -1,23 +1,27 @@
 import Vapor
 
-struct PhoneVerificationRouteCollection: RouteCollection {
+extension Passage.Verification {
 
-    let config: Passage.Configuration.Verification.Phone
-    let groupPath: [PathComponent]
+    struct PhoneRouteCollection: Vapor.RouteCollection {
 
-    func boot(routes builder: any RoutesBuilder) throws {
-        let grouped = groupPath.isEmpty ? builder : builder.grouped(groupPath)
+        let config: Passage.Configuration.Verification.Phone
+        let groupPath: [PathComponent]
 
-        grouped.post(config.routes.sendCode.path, use: sendCode)
-        grouped.post(config.routes.verify.path, use: verify)
-        grouped.post(config.routes.resend.path, use: resend)
+        func boot(routes builder: any RoutesBuilder) throws {
+            let grouped = groupPath.isEmpty ? builder : builder.grouped(groupPath)
+
+            grouped.post(config.routes.sendCode.path, use: sendCode)
+            grouped.post(config.routes.verify.path, use: verify)
+            grouped.post(config.routes.resend.path, use: resend)
+        }
+
     }
 
 }
 
 // MARK: - Send Code
 
-extension PhoneVerificationRouteCollection {
+extension Passage.Verification.PhoneRouteCollection {
 
     func sendCode(_ req: Request) async throws -> HTTPStatus {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)
@@ -40,7 +44,7 @@ extension PhoneVerificationRouteCollection {
 
 // MARK: - Verify
 
-extension PhoneVerificationRouteCollection {
+extension Passage.Verification.PhoneRouteCollection {
 
     func verify(_ req: Request) async throws -> HTTPStatus {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)
@@ -88,7 +92,7 @@ extension PhoneVerificationRouteCollection {
 
 // MARK: - Resend
 
-extension PhoneVerificationRouteCollection {
+extension Passage.Verification.PhoneRouteCollection {
 
     func resend(_ req: Request) async throws -> HTTPStatus {
         try await sendCode(req)

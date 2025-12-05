@@ -1,23 +1,27 @@
 import Vapor
 
-struct EmailVerificationRouteCollection: RouteCollection {
+extension Passage.Verification {
 
-    let config: Passage.Configuration.Verification.Email
-    let group: [PathComponent]
+    struct EmailRouteCollection: Vapor.RouteCollection {
 
-    func boot(routes builder: any RoutesBuilder) throws {
-        let grouped = group.isEmpty ? builder : builder.grouped(group)
+        let config: Passage.Configuration.Verification.Email
+        let group: [PathComponent]
 
-        grouped.post(config.routes.verify.path, use: send)
-        grouped.get(config.routes.verify.path, use: verify)
-        grouped.post(config.routes.resend.path, use: resend)
+        func boot(routes builder: any RoutesBuilder) throws {
+            let grouped = group.isEmpty ? builder : builder.grouped(group)
+
+            grouped.post(config.routes.verify.path, use: send)
+            grouped.get(config.routes.verify.path, use: verify)
+            grouped.post(config.routes.resend.path, use: resend)
+        }
+
     }
 
 }
 
 // MARK: - Send Code
 
-extension EmailVerificationRouteCollection {
+extension Passage.Verification.EmailRouteCollection {
 
     func send(_ req: Request) async throws -> HTTPStatus {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)
@@ -40,7 +44,7 @@ extension EmailVerificationRouteCollection {
 
 // MARK: - Verify
 
-extension EmailVerificationRouteCollection {
+extension Passage.Verification.EmailRouteCollection {
 
     func verify(_ req: Request) async throws -> HTTPStatus {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)
@@ -88,7 +92,7 @@ extension EmailVerificationRouteCollection {
 
 // MARK: - Resend
 
-extension EmailVerificationRouteCollection {
+extension Passage.Verification.EmailRouteCollection {
 
     func resend(_ req: Request) async throws -> HTTPStatus {
         try await send(req)

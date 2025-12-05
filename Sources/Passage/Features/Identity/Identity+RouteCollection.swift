@@ -1,27 +1,31 @@
 import Vapor
 
-struct IdentityRouteCollection: RouteCollection {
+extension Passage.Identity {
 
-    init(routes: Passage.Configuration.Routes) {
-        self.routes = routes
-    }
+    struct RouteCollection: Vapor.RouteCollection {
 
-    let routes: Passage.Configuration.Routes
+        init(routes: Passage.Configuration.Routes) {
+            self.routes = routes
+        }
 
-    func boot(routes builder: any RoutesBuilder) throws {
-        let grouped = routes.group.isEmpty ? builder : builder.grouped(routes.group)
-        grouped.post(routes.register.path, use: self.register)
-        grouped.post(routes.login.path, use: self.login)
-        grouped.post(routes.refreshToken.path, use: self.refreshToken)
-        grouped.post(routes.logout.path, use: self.logout)
-        grouped.get(routes.currentUser.path, use: self.currentUser)
+        let routes: Passage.Configuration.Routes
+
+        func boot(routes builder: any RoutesBuilder) throws {
+            let grouped = routes.group.isEmpty ? builder : builder.grouped(routes.group)
+            grouped.post(routes.register.path, use: self.register)
+            grouped.post(routes.login.path, use: self.login)
+            grouped.post(routes.refreshToken.path, use: self.refreshToken)
+            grouped.post(routes.logout.path, use: self.logout)
+            grouped.get(routes.currentUser.path, use: self.currentUser)
+        }
+
     }
 
 }
 
 // MARK: - Registration
 
-extension IdentityRouteCollection {
+extension Passage.Identity.RouteCollection {
 
     fileprivate func register(_ req: Request) async throws -> Response {
         do {
@@ -53,7 +57,7 @@ extension IdentityRouteCollection {
 
 // MARK: - Login
 
-extension IdentityRouteCollection {
+extension Passage.Identity.RouteCollection {
 
     fileprivate func login(_ req: Request) async throws -> Response {
         do {
@@ -86,7 +90,7 @@ extension IdentityRouteCollection {
 
 // MARK: - Token Refresh
 
-extension IdentityRouteCollection {
+extension Passage.Identity.RouteCollection {
 
     fileprivate func refreshToken(_ req: Request) async throws -> AuthUser {
         let form = try req.decodeContentAsFormOfType(req.contracts.refreshTokenForm)
@@ -98,7 +102,7 @@ extension IdentityRouteCollection {
 
 // MARK: - Logout
 
-extension IdentityRouteCollection {
+extension Passage.Identity.RouteCollection {
 
     fileprivate func logout(_ req: Request) async throws -> HTTPStatus {
         let _ = try req.decodeContentAsFormOfType(req.contracts.logoutForm)
@@ -120,7 +124,7 @@ extension IdentityRouteCollection {
 
 // MARK: - Current User
 
-extension IdentityRouteCollection {
+extension Passage.Identity.RouteCollection {
 
     fileprivate func currentUser(_ req: Request) async throws -> AuthUser.User {
         let accessToken = try await req.jwt.verify(as: AccessToken.self)

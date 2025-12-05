@@ -1,23 +1,27 @@
 import Vapor
 
-struct PhoneRestorationRouteCollection: RouteCollection {
+extension Passage.Restoration {
 
-    let routes: Passage.Configuration.Restoration.Phone.Routes
-    let groupPath: [PathComponent]
+    struct PhoneRouteCollection: Vapor.RouteCollection {
 
-    func boot(routes builder: any RoutesBuilder) throws {
-        let grouped = groupPath.isEmpty ? builder : builder.grouped(groupPath)
+        let routes: Passage.Configuration.Restoration.Phone.Routes
+        let groupPath: [PathComponent]
 
-        grouped.post(routes.request.path, use: request)
-        grouped.post(routes.verify.path, use: verify)
-        grouped.post(routes.resend.path, use: resend)
+        func boot(routes builder: any RoutesBuilder) throws {
+            let grouped = groupPath.isEmpty ? builder : builder.grouped(groupPath)
+
+            grouped.post(routes.request.path, use: request)
+            grouped.post(routes.verify.path, use: verify)
+            grouped.post(routes.resend.path, use: resend)
+        }
+
     }
 
 }
 
 // MARK: - Request Reset
 
-extension PhoneRestorationRouteCollection {
+extension Passage.Restoration.PhoneRouteCollection {
 
     func request(_ req: Request) async throws -> HTTPStatus {
         let form = try req.decodeContentAsFormOfType(req.contracts.phonePasswordResetRequestForm)
@@ -30,7 +34,7 @@ extension PhoneRestorationRouteCollection {
 
 // MARK: - Verify and Reset Password
 
-extension PhoneRestorationRouteCollection {
+extension Passage.Restoration.PhoneRouteCollection {
 
     func verify(_ req: Request) async throws -> HTTPStatus {
         let form = try req.decodeContentAsFormOfType(req.contracts.phonePasswordResetVerifyForm)
@@ -52,7 +56,7 @@ extension PhoneRestorationRouteCollection {
 
 // MARK: - Resend
 
-extension PhoneRestorationRouteCollection {
+extension Passage.Restoration.PhoneRouteCollection {
 
     struct ResendForm: Content {
         let phone: String

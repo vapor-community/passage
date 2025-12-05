@@ -7,10 +7,10 @@ struct EmailVerificationRouteCollectionTests {
 
     // MARK: - Initialization Tests
 
-    @Test("EmailVerificationRouteCollection initialization with default group")
+    @Test("Passage.Verification.EmailRouteCollection initialization with default group")
     func initializationWithDefaultGroup() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -18,11 +18,11 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.group.isEmpty)
     }
 
-    @Test("EmailVerificationRouteCollection initialization with custom group")
+    @Test("Passage.Verification.EmailRouteCollection initialization with custom group")
     func initializationWithCustomGroup() {
         let config = Passage.Configuration.Verification.Email()
         let group: [PathComponent] = ["auth", "email"]
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: group
         )
@@ -30,14 +30,14 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.group.count == 2)
     }
 
-    @Test("EmailVerificationRouteCollection stores configuration")
+    @Test("Passage.Verification.EmailRouteCollection stores configuration")
     func storesConfiguration() {
         let config = Passage.Configuration.Verification.Email(
             codeLength: 8,
             codeExpiration: 600,
             maxAttempts: 5
         )
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -49,10 +49,10 @@ struct EmailVerificationRouteCollectionTests {
 
     // MARK: - Group Path Tests
 
-    @Test("EmailVerificationRouteCollection with empty group")
+    @Test("Passage.Verification.EmailRouteCollection with empty group")
     func emptyGroup() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -60,10 +60,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.group.isEmpty)
     }
 
-    @Test("EmailVerificationRouteCollection with single component group")
+    @Test("Passage.Verification.EmailRouteCollection with single component group")
     func singleComponentGroup() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: ["verify"]
         )
@@ -71,10 +71,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.group.count == 1)
     }
 
-    @Test("EmailVerificationRouteCollection with multiple components")
+    @Test("Passage.Verification.EmailRouteCollection with multiple components")
     func multipleComponentsGroup() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: ["api", "v1", "auth", "email"]
         )
@@ -82,10 +82,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.group.count == 4)
     }
 
-    @Test("EmailVerificationRouteCollection with versioned group")
+    @Test("Passage.Verification.EmailRouteCollection with versioned group")
     func versionedGroup() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: ["v1", "verification", "email"]
         )
@@ -95,10 +95,10 @@ struct EmailVerificationRouteCollectionTests {
 
     // MARK: - Route Configuration Tests
 
-    @Test("EmailVerificationRouteCollection with default routes")
+    @Test("Passage.Verification.EmailRouteCollection with default routes")
     func defaultRoutes() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -107,7 +107,7 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.config.routes.resend.path.count > 0)
     }
 
-    @Test("EmailVerificationRouteCollection with custom route paths")
+    @Test("Passage.Verification.EmailRouteCollection with custom route paths")
     func customRoutePaths() {
         let verifyRoute = Passage.Configuration.Verification.Email.Routes.Verify(path: "custom-verify")
         let resendRoute = Passage.Configuration.Verification.Email.Routes.Resend(path: "custom-resend")
@@ -117,7 +117,7 @@ struct EmailVerificationRouteCollectionTests {
         )
 
         let config = Passage.Configuration.Verification.Email(routes: routes)
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -126,10 +126,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.config.routes.resend.path == ["custom-resend"])
     }
 
-    @Test("EmailVerificationRouteCollection verify route path")
+    @Test("Passage.Verification.EmailRouteCollection verify route path")
     func verifyRoutePath() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -137,10 +137,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(!collection.config.routes.verify.path.isEmpty)
     }
 
-    @Test("EmailVerificationRouteCollection resend route path")
+    @Test("Passage.Verification.EmailRouteCollection resend route path")
     func resendRoutePath() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -150,10 +150,10 @@ struct EmailVerificationRouteCollectionTests {
 
     // MARK: - Configuration Parameter Tests
 
-    @Test("EmailVerificationRouteCollection with custom code length")
+    @Test("Passage.Verification.EmailRouteCollection with custom code length")
     func customCodeLength() {
         let config = Passage.Configuration.Verification.Email(codeLength: 10)
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -161,10 +161,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.config.codeLength == 10)
     }
 
-    @Test("EmailVerificationRouteCollection with custom expiration")
+    @Test("Passage.Verification.EmailRouteCollection with custom expiration")
     func customExpiration() {
         let config = Passage.Configuration.Verification.Email(codeExpiration: 1800)
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -172,10 +172,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.config.codeExpiration == 1800)
     }
 
-    @Test("EmailVerificationRouteCollection with custom max attempts")
+    @Test("Passage.Verification.EmailRouteCollection with custom max attempts")
     func customMaxAttempts() {
         let config = Passage.Configuration.Verification.Email(maxAttempts: 10)
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -185,16 +185,16 @@ struct EmailVerificationRouteCollectionTests {
 
     // MARK: - Multiple Instance Tests
 
-    @Test("Multiple EmailVerificationRouteCollection instances are independent")
+    @Test("Multiple Passage.Verification.EmailRouteCollection instances are independent")
     func multipleInstancesIndependent() {
         let config1 = Passage.Configuration.Verification.Email(codeLength: 6)
-        let collection1 = EmailVerificationRouteCollection(
+        let collection1 = Passage.Verification.EmailRouteCollection(
             config: config1,
             group: ["auth1"]
         )
 
         let config2 = Passage.Configuration.Verification.Email(codeLength: 8)
-        let collection2 = EmailVerificationRouteCollection(
+        let collection2 = Passage.Verification.EmailRouteCollection(
             config: config2,
             group: ["auth2"]
         )
@@ -203,22 +203,22 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection1.group != collection2.group)
     }
 
-    @Test("EmailVerificationRouteCollection can be instantiated multiple times")
+    @Test("Passage.Verification.EmailRouteCollection can be instantiated multiple times")
     func multipleInstantiations() {
         let config = Passage.Configuration.Verification.Email()
 
-        let collection1 = EmailVerificationRouteCollection(config: config, group: [])
-        let collection2 = EmailVerificationRouteCollection(config: config, group: [])
+        let collection1 = Passage.Verification.EmailRouteCollection(config: config, group: [])
+        let collection2 = Passage.Verification.EmailRouteCollection(config: config, group: [])
 
         #expect(collection1.group == collection2.group)
     }
 
     // MARK: - Protocol Conformance Tests
 
-    @Test("EmailVerificationRouteCollection conforms to RouteCollection")
+    @Test("Passage.Verification.EmailRouteCollection conforms to RouteCollection")
     func conformsToRouteCollection() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: []
         )
@@ -229,30 +229,30 @@ struct EmailVerificationRouteCollectionTests {
 
     // MARK: - Group Path Component Tests
 
-    @Test("EmailVerificationRouteCollection with different path component types")
+    @Test("Passage.Verification.EmailRouteCollection with different path component types")
     func differentPathComponentTypes() {
         let config = Passage.Configuration.Verification.Email()
 
         // String path components
-        let collection1 = EmailVerificationRouteCollection(
+        let collection1 = Passage.Verification.EmailRouteCollection(
             config: config,
             group: ["auth", "verify"]
         )
         #expect(collection1.group.count == 2)
 
         // Constant path components
-        let collection2 = EmailVerificationRouteCollection(
+        let collection2 = Passage.Verification.EmailRouteCollection(
             config: config,
             group: [.constant("auth"), .constant("verify")]
         )
         #expect(collection2.group.count == 2)
     }
 
-    @Test("EmailVerificationRouteCollection preserves group order")
+    @Test("Passage.Verification.EmailRouteCollection preserves group order")
     func preservesGroupOrder() {
         let config = Passage.Configuration.Verification.Email()
         let group: [PathComponent] = ["first", "second", "third"]
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: group
         )
@@ -263,7 +263,7 @@ struct EmailVerificationRouteCollectionTests {
 
     // MARK: - Configuration Preservation Tests
 
-    @Test("EmailVerificationRouteCollection preserves all configuration settings")
+    @Test("Passage.Verification.EmailRouteCollection preserves all configuration settings")
     func preservesAllConfiguration() {
         let verifyRoute = Passage.Configuration.Verification.Email.Routes.Verify(path: "verify")
         let resendRoute = Passage.Configuration.Verification.Email.Routes.Resend(path: "resend")
@@ -279,7 +279,7 @@ struct EmailVerificationRouteCollectionTests {
             maxAttempts: 4
         )
 
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: ["email"]
         )
@@ -292,10 +292,10 @@ struct EmailVerificationRouteCollectionTests {
         #expect(collection.group == ["email"])
     }
 
-    @Test("EmailVerificationRouteCollection with nested path groups")
+    @Test("Passage.Verification.EmailRouteCollection with nested path groups")
     func nestedPathGroups() {
         let config = Passage.Configuration.Verification.Email()
-        let collection = EmailVerificationRouteCollection(
+        let collection = Passage.Verification.EmailRouteCollection(
             config: config,
             group: ["api", "v2", "auth", "email", "verify"]
         )
