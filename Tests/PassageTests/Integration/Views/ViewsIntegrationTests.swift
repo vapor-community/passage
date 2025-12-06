@@ -3,18 +3,37 @@ import Vapor
 import VaporTesting
 import JWTKit
 import Leaf
+import LeafKit
 @testable import Passage
 @testable import PassageOnlyForTest
 
 @Suite("Views Integration Tests", .tags(.integration))
 struct ViewsIntegrationTests {
 
+    // MARK: - Helpers
+
+    /// Helper class to capture sent emails and SMS
+    final class CapturedMessages: @unchecked Sendable {
+        var emails: [Passage.OnlyForTest.MockEmailDelivery.EphemeralEmail] = []
+        var sms: [Passage.OnlyForTest.MockPhoneDelivery.EphemeralSMS] = []
+    }
+
     // MARK: - Configuration Helpers
 
-    /// Configures a test Vapor application with Passage (views disabled for testing)
-    @Sendable private func configure(_ app: Application, viewsConfig: Passage.Configuration.Views) async throws {
-        // Note: We don't configure Leaf in tests because template loading from .build directory
-        // has security restrictions. These tests verify route registration and 404 behavior only.
+    /// Configures a test Vapor application with Passage
+    @Sendable private func configure(
+        _ app: Application,
+        viewsConfig: Passage.Configuration.Views,
+        captureRenderer: CapturingViewRenderer? = nil,
+        captured: CapturedMessages? = nil
+    ) async throws {
+        // Use capturing renderer if provided (for view rendering tests)
+        // Otherwise use default (for 404 tests)
+        if let renderer = captureRenderer {
+            app.views.use { req in
+                renderer
+            }
+        }
 
         // Add HMAC key for JWT
         await app.jwt.keys.add(
@@ -25,8 +44,14 @@ struct ViewsIntegrationTests {
 
         // Configure Passage with test services
         let store = Passage.OnlyForTest.InMemoryStore()
-        let emailDelivery = Passage.OnlyForTest.MockEmailDelivery()
-        let phoneDelivery = Passage.OnlyForTest.MockPhoneDelivery()
+
+        let emailCallback: (@Sendable (Passage.OnlyForTest.MockEmailDelivery.EphemeralEmail) -> Void)? =
+            captured != nil ? { @Sendable in captured!.emails.append($0) } : nil
+        let phoneCallback: (@Sendable (Passage.OnlyForTest.MockPhoneDelivery.EphemeralSMS) -> Void)? =
+            captured != nil ? { @Sendable in captured!.sms.append($0) } : nil
+
+        let emailDelivery = Passage.OnlyForTest.MockEmailDelivery(callback: emailCallback)
+        let phoneDelivery = Passage.OnlyForTest.MockPhoneDelivery(callback: phoneCallback)
 
         let services = Passage.Services(
             store: store,
@@ -97,6 +122,247 @@ struct ViewsIntegrationTests {
         }
     }
 
+    // MARK: - Login View Rendering Tests
+
+    @Test("Login view renders login-minimalism template with email identifier")
+    func loginViewRendersWithEmail() async throws {
+        let theme = Passage.Views.Theme(colors: .defaultLight)
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: theme,
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/login", afterResponse: { res in
+                #expect(res.status == .ok)
+
+                // Verify correct template was requested
+                #expect(renderer.templatePath == "login-minimalism")
+
+                // Verify context was passed
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.LoginViewContext>
+                #expect(ctx?.params.byEmail == true)
+                #expect(ctx?.params.byPhone == false)
+                #expect(ctx?.params.byUsername == false)
+            })
+        }
+    }
+
+    @Test("Login view renders with phone identifier context")
+    func loginViewRendersWithPhone() async throws {
+        let theme = Passage.Views.Theme(colors: .oceanLight)
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: theme,
+            identifier: .phone
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/login", afterResponse: { res in
+                #expect(res.status == .ok)
+
+                #expect(renderer.templatePath == "login-minimalism")
+
+                // Verify context was passed
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.LoginViewContext>
+                #expect(ctx?.params.byEmail == false)
+                #expect(ctx?.params.byPhone == true)
+                #expect(ctx?.params.byUsername == false)
+            })
+        }
+    }
+
+    @Test("Login view captures query parameters in context")
+    func loginViewRendersWithParams() async throws {
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/login?error=Invalid+credentials", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "login-minimalism")
+                // Context contains error parameter
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.LoginViewContext>
+                #expect(ctx?.params.error == "Invalid credentials")
+            })
+        }
+    }
+
+    // MARK: - Login Form Submission Tests
+
+    @Test("Login form submission succeeds and redirects to login page with success message")
+    func loginFormSubmissionSucceeds() async throws {
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Create a verified user first
+            let email = "test@example.com"
+            let password = "SecurePassword123!"
+            let passwordHash = try await app.password.async.hash(password)
+
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Mark email as verified
+            let user = try await store.users.find(byCredential: credential)
+            try #require(user != nil)
+            try await store.users.markEmailVerified(for: user!)
+
+            // Submit login form with correct credentials
+            try await app.testing().test(.POST, "/auth/login", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&password=\(password)&confirmPassword=\(password)"), afterResponse: { res in
+                // Should redirect (302 or 303)
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+
+                // Should redirect back to login with success message
+                #expect(location?.contains("/auth/login") == true)
+                #expect(location?.contains("success=") == true)
+                // Success message contains "successfully logged in"
+                #expect(location?.contains("successfully") == true || location?.contains("logged+in") == true)
+            })
+        }
+    }
+
+    @Test("Login form submission fails and redirects to login page with error message")
+    func loginFormSubmissionFails() async throws {
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Submit login form with incorrect credentials (no user exists)
+            try await app.testing().test(.POST, "/auth/login", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=nonexistent@example.com&password=wrongpassword"), afterResponse: { res in
+                // Should redirect (302 or 303)
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+
+                // Should redirect back to login with error message
+                #expect(location?.contains("/auth/login") == true)
+                #expect(location?.contains("error=") == true)
+            })
+        }
+    }
+
+    @Test("Login form submission with custom redirect on success")
+    func loginFormSubmissionWithCustomSuccessRedirect() async throws {
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: "/dashboard",
+            onFailure: nil
+        )
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect,
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Create a verified user first
+            let email = "test@example.com"
+            let password = "SecurePassword123!"
+            let passwordHash = try await app.password.async.hash(password)
+
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Mark email as verified
+            let user = try await store.users.find(byCredential: credential)
+            try #require(user != nil)
+            try await store.users.markEmailVerified(for: user!)
+
+            // Submit login form with correct credentials
+            try await app.testing().test(.POST, "/auth/login", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&password=\(password)&confirmPassword=\(password)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should redirect to custom success location
+                let location = res.headers.first(name: .location)
+                #expect(location == "/dashboard")
+            })
+        }
+    }
+
+    @Test("Login form submission with custom redirect on failure")
+    func loginFormSubmissionWithCustomFailureRedirect() async throws {
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: nil,
+            onFailure: "/error"
+        )
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect,
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Submit login form with incorrect credentials
+            try await app.testing().test(.POST, "/auth/login", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=nonexistent@example.com&password=wrongpassword"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should redirect to custom failure location
+                let location = res.headers.first(name: .location)
+                #expect(location == "/error")
+            })
+        }
+    }
+
     // MARK: - Register View 404 Tests
 
     @Test("Register view returns 404 when not configured")
@@ -106,6 +372,209 @@ struct ViewsIntegrationTests {
         try await withApp(configure: { app in try await configure(app, viewsConfig: viewsConfig) }) { app in
             try await app.testing().test(.GET, "/auth/register", afterResponse: { res in
                 #expect(res.status == .notFound)
+            })
+        }
+    }
+
+    // MARK: - Register View Rendering Tests
+
+    @Test("Register view renders register-minimalism template with email identifier")
+    func registerViewRendersMinimalism() async throws {
+        let registerView = Passage.Configuration.Views.RegisterView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(register: registerView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/register", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "register-minimalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.RegisterViewContext>
+                #expect(ctx?.params.byEmail == true)
+                #expect(ctx?.params.byPhone == false)
+                #expect(ctx?.params.byUsername == false)
+            })
+        }
+    }
+
+    @Test("Register view renders register-neobrutalism template with phone identifier")
+    func registerViewRendersNeobrutalism() async throws {
+        let registerView = Passage.Configuration.Views.RegisterView(
+            style: .neobrutalism,
+            theme: Passage.Views.Theme(colors: .oceanLight),
+            identifier: .phone
+        )
+        let viewsConfig = Passage.Configuration.Views(register: registerView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/register", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "register-neobrutalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.RegisterViewContext>
+                #expect(ctx?.params.byEmail == false)
+                #expect(ctx?.params.byPhone == true)
+                #expect(ctx?.params.byUsername == false)
+            })
+        }
+    }
+
+    // MARK: - Register Form Submission Tests
+
+    @Test("Register form submission succeeds and redirects to register page with success message")
+    func registerFormSubmissionSucceeds() async throws {
+        let registerView = Passage.Configuration.Views.RegisterView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(register: registerView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            let email = "newuser-\(UUID().uuidString)@example.com"
+            let password = "SecurePassword123!"
+
+            // Submit register form
+            try await app.testing().test(.POST, "/auth/register", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&password=\(password)&confirmPassword=\(password)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+
+                // Should redirect back to register with success message
+                #expect(location?.contains("/auth/register") == true)
+                #expect(location?.contains("success=") == true)
+                #expect(location?.contains("successfully") == true || location?.contains("registered") == true)
+            })
+        }
+    }
+
+    @Test("Register form submission fails and redirects to register page with error message")
+    func registerFormSubmissionFails() async throws {
+        let registerView = Passage.Configuration.Views.RegisterView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(register: registerView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Create an existing user first
+            let email = "existing@example.com"
+            let password = "SecurePassword123!"
+            let passwordHash = try await app.password.async.hash(password)
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Try to register with same email (should fail)
+            try await app.testing().test(.POST, "/auth/register", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&password=\(password)&confirmPassword=\(password)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+
+                // Should redirect back to register with error message
+                #expect(location?.contains("/auth/register") == true)
+                #expect(location?.contains("error=") == true)
+            })
+        }
+    }
+
+    @Test("Register form submission with custom redirect on success")
+    func registerFormSubmissionWithCustomSuccessRedirect() async throws {
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: "/welcome",
+            onFailure: nil
+        )
+        let registerView = Passage.Configuration.Views.RegisterView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect,
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(register: registerView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            let email = "newuser-\(UUID().uuidString)@example.com"
+            let password = "SecurePassword123!"
+
+            // Submit register form
+            try await app.testing().test(.POST, "/auth/register", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&password=\(password)&confirmPassword=\(password)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should redirect to custom success location
+                let location = res.headers.first(name: .location)
+                #expect(location == "/welcome")
+            })
+        }
+    }
+
+    @Test("Register form submission with custom redirect on failure")
+    func registerFormSubmissionWithCustomFailureRedirect() async throws {
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: nil,
+            onFailure: "/signup-error"
+        )
+        let registerView = Passage.Configuration.Views.RegisterView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect,
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(register: registerView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Create an existing user first
+            let email = "existing@example.com"
+            let password = "SecurePassword123!"
+            let passwordHash = try await app.password.async.hash(password)
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Try to register with same email
+            try await app.testing().test(.POST, "/auth/register", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&password=\(password)&confirmPassword=\(password)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should redirect to custom failure location
+                let location = res.headers.first(name: .location)
+                #expect(location == "/signup-error")
             })
         }
     }
@@ -134,8 +603,123 @@ struct ViewsIntegrationTests {
         }
     }
 
+    // MARK: - Password Reset Request View Rendering Tests
+
+    @Test("Password reset request view renders for email")
+    func passwordResetRequestEmailRenders() async throws {
+        let resetView = Passage.Configuration.Views.PasswordResetRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetRequest: resetView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/password/reset/email", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "password-reset-request-minimalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.ResetPasswordRequestViewContext>
+                #expect(ctx?.params.byEmail == true)
+                #expect(ctx?.params.byPhone == false)
+            })
+        }
+    }
+
+    @Test("Password reset request view renders with material style for phone")
+    func passwordResetRequestPhoneRenders() async throws {
+        let resetView = Passage.Configuration.Views.PasswordResetRequestView(
+            style: .material,
+            theme: Passage.Views.Theme(colors: .forestLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetRequest: resetView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/password/reset/phone", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "password-reset-request-material")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.ResetPasswordRequestViewContext>
+                #expect(ctx?.params.byEmail == false)
+                #expect(ctx?.params.byPhone == true)
+            })
+        }
+    }
+
+    // MARK: - Password Reset Request Form Submission Tests
+
+    @Test("Password reset request form submission succeeds for email")
+    func passwordResetRequestFormSubmissionSucceedsForEmail() async throws {
+        let resetView = Passage.Configuration.Views.PasswordResetRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetRequest: resetView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Create a user first
+            let email = "user@example.com"
+            let password = "SecurePassword123!"
+            let passwordHash = try await app.password.async.hash(password)
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Submit password reset request form
+            try await app.testing().test(.POST, "/auth/password/reset/email", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+
+                // Should redirect back with success message (generic for security)
+                #expect(location?.contains("/auth/password/reset/email") == true)
+                #expect(location?.contains("success=") == true)
+            })
+        }
+    }
+
+    @Test("Password reset request form submission fails with invalid email format")
+    func passwordResetRequestFormSubmissionFailsWithInvalidEmail() async throws {
+        let resetView = Passage.Configuration.Views.PasswordResetRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetRequest: resetView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Submit with invalid email format
+            try await app.testing().test(.POST, "/auth/password/reset/email", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=invalid-email"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header with error
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+                #expect(location?.contains("/auth/password/reset/email") == true)
+                #expect(location?.contains("error=") == true)
+            })
+        }
+    }
+
     // MARK: - Password Reset Confirm View 404 Tests
-    // Note: password-reset-confirm templates don't exist yet, so only testing 404 behavior
 
     @Test("Password reset confirm view returns 404 when not configured for email")
     func passwordResetConfirmEmailNotConfigured() async throws {
@@ -155,6 +739,232 @@ struct ViewsIntegrationTests {
         try await withApp(configure: { app in try await configure(app, viewsConfig: viewsConfig) }) { app in
             try await app.testing().test(.GET, "/auth/password/reset/phone/verify?code=123456", afterResponse: { res in
                 #expect(res.status == .notFound)
+            })
+        }
+    }
+
+    // MARK: - Password Reset Request View Rendering Tests
+
+    @Test("Password reset confirm view renders for email")
+    func passwordResetConfirmEmailRenders() async throws {
+        let resetView = Passage.Configuration.Views.PasswordResetConfirmView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetConfirm: resetView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/password/reset/email/verify?code=123456", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "password-reset-confirm-minimalism")
+
+                let context = renderer.capturedContext as? Passage.Views.Context<Passage.Views.ResetPasswordConfirmViewContext>
+                #expect(context?.params.byEmail == true)
+                #expect(context?.params.byPhone == false)
+            })
+        }
+    }
+
+    @Test("Password reset confirm view renders for phone")
+    func passwordResetConfirmPhoneRenders() async throws {
+        let resetView = Passage.Configuration.Views.PasswordResetConfirmView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetConfirm: resetView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/password/reset/phone/verify?code=123456", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "password-reset-confirm-minimalism")
+
+                let context = renderer.capturedContext as? Passage.Views.Context<Passage.Views.ResetPasswordConfirmViewContext>
+                #expect(context?.params.byEmail == false)
+                #expect(context?.params.byPhone == true)
+            })
+        }
+    }
+
+    // MARK: - Password Reset Confirm Form Submission Tests
+
+    @Test("Password reset confirm form submission succeeds for email")
+    func passwordResetConfirmFormSubmissionSucceedsForEmail() async throws {
+        let captured = CapturedMessages()
+        let confirmView = Passage.Configuration.Views.PasswordResetConfirmView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetConfirm: confirmView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig, captured: captured)
+
+            // Create a user
+            let email = "user@example.com"
+            let password = "OldPassword123!"
+            let newPassword = "NewPassword456!"
+            let passwordHash = try await app.password.async.hash(password)
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Request password reset to get a code (via HTTP endpoint)
+            try await app.testing().test(.POST, "/auth/password/reset/email", beforeRequest: { req in
+                try req.content.encode(["email": email])
+            }, afterResponse: { res in
+                #expect(res.status == .ok)
+            })
+
+            // Get the reset code from captured email
+            let resetCode = try #require(captured.emails.first?.passwordResetCode)
+
+            // Submit password reset confirm form
+            try await app.testing().test(.POST, "/auth/password/reset/email/verify", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&code=\(resetCode)&newPassword=\(newPassword)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+
+                // Should redirect with success message
+                #expect(location?.contains("/auth/password/reset/email/verify") == true)
+                #expect(location?.contains("success=") == true)
+            })
+        }
+    }
+
+    @Test("Password reset confirm form submission fails with invalid code")
+    func passwordResetConfirmFormSubmissionFailsWithInvalidCode() async throws {
+        let confirmView = Passage.Configuration.Views.PasswordResetConfirmView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetConfirm: confirmView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Create a user
+            let email = "user@example.com"
+            let password = "OldPassword123!"
+            let passwordHash = try await app.password.async.hash(password)
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Submit with invalid code
+            try await app.testing().test(.POST, "/auth/password/reset/email/verify", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&code=INVALID&newPassword=NewPassword456!"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should have Location header with error
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+                #expect(location?.contains("/auth/password/reset/email/verify") == true)
+                #expect(location?.contains("error=") == true)
+            })
+        }
+    }
+
+    @Test("Password reset confirm form submission with custom redirect on success")
+    func passwordResetConfirmFormSubmissionWithCustomSuccessRedirect() async throws {
+        let captured = CapturedMessages()
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: "/login",
+            onFailure: nil
+        )
+        let confirmView = Passage.Configuration.Views.PasswordResetConfirmView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetConfirm: confirmView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig, captured: captured)
+
+            // Create a user
+            let email = "user@example.com"
+            let password = "OldPassword123!"
+            let newPassword = "NewPassword456!"
+            let passwordHash = try await app.password.async.hash(password)
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Request password reset to get a code (via HTTP endpoint)
+            try await app.testing().test(.POST, "/auth/password/reset/email", beforeRequest: { req in
+                try req.content.encode(["email": email])
+            }, afterResponse: { res in
+                #expect(res.status == .ok)
+            })
+
+            // Get the reset code from captured email
+            let resetCode = try #require(captured.emails.first?.passwordResetCode)
+
+            // Submit password reset confirm form
+            try await app.testing().test(.POST, "/auth/password/reset/email/verify", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&code=\(resetCode)&newPassword=\(newPassword)"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should redirect to custom success location
+                let location = res.headers.first(name: .location)
+                #expect(location == "/login")
+            })
+        }
+    }
+
+    @Test("Password reset confirm form submission with custom redirect on failure")
+    func passwordResetConfirmFormSubmissionWithCustomFailureRedirect() async throws {
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: nil,
+            onFailure: "/reset-error"
+        )
+        let confirmView = Passage.Configuration.Views.PasswordResetConfirmView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect
+        )
+        let viewsConfig = Passage.Configuration.Views(passwordResetConfirm: confirmView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            // Create a user
+            let email = "user@example.com"
+            let password = "OldPassword123!"
+            let passwordHash = try await app.password.async.hash(password)
+            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let store = app.passage.storage.services.store
+            try await store.users.create(with: credential)
+
+            // Submit with invalid code
+            try await app.testing().test(.POST, "/auth/password/reset/email/verify", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)&code=INVALID&newPassword=NewPassword456!"), afterResponse: { res in
+                // Should redirect
+                #expect(res.status == .seeOther || res.status == .found)
+
+                // Should redirect to custom failure location
+                let location = res.headers.first(name: .location)
+                #expect(location == "/reset-error")
             })
         }
     }
