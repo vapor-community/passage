@@ -202,7 +202,7 @@ extension Passage.Views {
     func renderResetPasswordConfirmView(
         for identifier: Identifier.Kind
     ) async throws -> View {
-        guard let view = config.passwordResetRequest else {
+        guard let view = config.passwordResetConfirm else {
             throw Abort(.notFound)
         }
         let params = try request.query.decode(ResetPasswordConfirmViewContext.self)
