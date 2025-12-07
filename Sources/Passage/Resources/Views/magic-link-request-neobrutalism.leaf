@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In With Email</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: #(theme.colors.background);
+            color: #(theme.colors.onBackground);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: #(theme.colors.surface);
+            border: 4px solid #000000;
+            box-shadow: 8px 8px 0 #000000;
+            padding: 40px 30px;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 900;
+            color: #(theme.colors.onSurface);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .error,
+        .success {
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            border: 3px solid #000000;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 4px 4px 0 #000000;
+        }
+
+        .error {
+            background: #(theme.colors.error);
+            color: #(theme.colors.onError);
+        }
+
+        .success {
+            background: #(theme.colors.success);
+            color: #(theme.colors.onSuccess);
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 900;
+            font-size: 14px;
+            color: #(theme.colors.onSurface);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border: 3px solid #000000;
+            border-radius: 0;
+            background: #(theme.colors.surface);
+            color: #(theme.colors.onSurface);
+            box-shadow: 4px 4px 0 #000000;
+            transition: all 0.1s ease;
+        }
+
+        input:focus {
+            outline: none;
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000000;
+        }
+
+        input::placeholder {
+            color: #(theme.colors.onSurfaceVariant);
+            opacity: 0.6;
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #(theme.colors.primary);
+            color: #(theme.colors.onPrimary);
+            border: 3px solid #000000;
+            border-radius: 0;
+            cursor: pointer;
+            box-shadow: 6px 6px 0 #000000;
+            transition: all 0.1s ease;
+        }
+
+        button:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 4px 4px 0 #000000;
+        }
+
+        button:active {
+            transform: translate(4px, 4px);
+            box-shadow: 2px 2px 0 #000000;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+                border-width: 3px;
+                box-shadow: 6px 6px 0 #000000;
+            }
+
+            h1 {
+                font-size: 26px;
+            }
+
+            button {
+                box-shadow: 4px 4px 0 #000000;
+            }
+
+            button:hover {
+                box-shadow: 3px 3px 0 #000000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sign In With Email</h1>
+
+        #if(params.error):
+        <div class="error">#(params.error)</div>
+        #endif
+
+        #if(params.success):
+        <div class="success">A sign-in link has been sent to #(params.identifier)</div>
+        #else:
+        <form method="POST">
+            <!-- Email Input -->
+            #if(params.byEmail):
+            <div class="form-group">
+                <label for="identifier">Email Address</label>
+                <input
+                    type="email"
+                    id="identifier"
+                    name="identifier"
+                    required
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                >
+            </div>
+            #endif
+
+            <button type="submit">Send Magic Link</button>
+        </form>
+        #endif
+    </div>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifying Sign-In Link</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial Black', Arial, sans-serif;
+            background: #(theme.colors.background);
+            color: #(theme.colors.onBackground);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: #(theme.colors.surface);
+            border: 4px solid #000000;
+            box-shadow: 8px 8px 0 #000000;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 900;
+            color: #(theme.colors.onSurface);
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+
+        .error,
+        .success {
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 3px solid #000000;
+            font-weight: 700;
+            font-size: 15px;
+            box-shadow: 4px 4px 0 #000000;
+        }
+
+        .error {
+            background: #(theme.colors.error);
+            color: #(theme.colors.onError);
+        }
+
+        .success {
+            background: #(theme.colors.success);
+            color: #(theme.colors.onSuccess);
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            margin: 30px auto;
+            border: 5px solid #000000;
+            border-top-color: #(theme.colors.primary);
+            border-radius: 0;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 18px 30px;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #(theme.colors.primary);
+            color: #(theme.colors.onPrimary);
+            border: 3px solid #000000;
+            border-radius: 0;
+            cursor: pointer;
+            box-shadow: 6px 6px 0 #000000;
+            transition: all 0.1s ease;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 4px 4px 0 #000000;
+        }
+
+        .btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 2px 2px 0 #000000;
+        }
+
+        .status-text {
+            color: #(theme.colors.onSurface);
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+                border-width: 3px;
+                box-shadow: 6px 6px 0 #000000;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .btn {
+                box-shadow: 4px 4px 0 #000000;
+            }
+
+            .btn:hover {
+                box-shadow: 3px 3px 0 #000000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Verifying Sign-In Link</h1>
+
+        #if(params.success):
+        <div class="success">Success! Signing you in...</div>
+        <div class="spinner"></div>
+        <script>
+            setTimeout(function() {
+                window.location.href = '#(params.redirectUrl)';
+            }, 1500);
+        </script>
+        #elseif(params.error):
+        <div class="error">#(params.error)</div>
+        #if(params.loginLink):
+        <a href="#(params.loginLink)" class="btn">Return to Login</a>
+        #endif
+        #else:
+        <div class="spinner"></div>
+        <p class="status-text">Verifying your link...</p>
+        #endif
+    </div>
+</body>
+</html>

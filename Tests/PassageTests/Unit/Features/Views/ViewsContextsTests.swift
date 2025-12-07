@@ -37,7 +37,9 @@ struct ViewsContextsTests {
             error: nil,
             success: nil,
             registerLink: "/register",
-            resetPasswordLink: "/reset"
+            resetPasswordLink: "/reset",
+            byEmailMagicLink: nil,
+            magicLinkRequestLink: nil
         )
 
         #expect(context.byEmail == true)
@@ -59,7 +61,9 @@ struct ViewsContextsTests {
             error: nil,
             success: nil,
             registerLink: nil,
-            resetPasswordLink: nil
+            resetPasswordLink: nil,
+            byEmailMagicLink: nil,
+            magicLinkRequestLink: nil
         )
 
         let updated = original.copyWith(
@@ -92,7 +96,9 @@ struct ViewsContextsTests {
             error: "Original error",
             success: nil,
             registerLink: "/original",
-            resetPasswordLink: "/reset"
+            resetPasswordLink: "/reset",
+            byEmailMagicLink: nil,
+            magicLinkRequestLink: nil
         )
 
         let copy = original.copyWith()
@@ -271,7 +277,8 @@ struct ViewsContextsTests {
         let context = Passage.Views.LoginViewContext(
             byEmail: true, byPhone: false, byUsername: false,
             withApple: false, withGoogle: false, withGitHub: false,
-            error: nil, success: nil, registerLink: nil, resetPasswordLink: nil
+            error: nil, success: nil, registerLink: nil, resetPasswordLink: nil,
+            byEmailMagicLink: nil, magicLinkRequestLink: nil
         )
         let _: any Content = context
     }
@@ -312,7 +319,8 @@ struct ViewsContextsTests {
         let original = Passage.Views.LoginViewContext(
             byEmail: true, byPhone: false, byUsername: false,
             withApple: false, withGoogle: false, withGitHub: false,
-            error: nil, success: nil, registerLink: nil, resetPasswordLink: nil
+            error: nil, success: nil, registerLink: nil, resetPasswordLink: nil,
+            byEmailMagicLink: nil, magicLinkRequestLink: nil
         )
 
         let copy = original.copyWith(error: "New error")

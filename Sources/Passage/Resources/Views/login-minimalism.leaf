@@ -346,6 +346,15 @@
         <p class="p">Don't have an account? <a href="#(params.registerLink)" class="span">Sign Up</a></p>
         #endif
 
+        #if(params.magicLinkRequestLink):
+        <a href="#(params.magicLinkRequestLink)" class="btn" style="margin-top: 15px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20">
+                <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path>
+            </svg>
+            Sign In With Email
+        </a>
+        #endif
+
         #if(params.withGoogle || params.withApple || params.withGitHub):
         <p class="p line">Or With</p>
 

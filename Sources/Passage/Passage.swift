@@ -67,6 +67,7 @@ public struct Passage: Sendable {
                 config: configuration.views,
                 routes: configuration.routes,
                 restoration: configuration.restoration,
+                passwordless: configuration.passwordless,
                 group: configuration.routes.group
             ))
         }

@@ -30,17 +30,23 @@ public extension Passage.Configuration {
         let login: LoginView?
         let passwordResetRequest: PasswordResetRequestView?
         let passwordResetConfirm: PasswordResetConfirmView?
+        let magicLinkRequest: MagicLinkRequestView?
+        let magicLinkVerify: MagicLinkVerifyView?
 
         public init(
             register: RegisterView? = nil,
             login: LoginView? = nil,
             passwordResetRequest: PasswordResetRequestView? = nil,
             passwordResetConfirm: PasswordResetConfirmView? = nil,
+            magicLinkRequest: MagicLinkRequestView? = nil,
+            magicLinkVerify: MagicLinkVerifyView? = nil
         ) {
             self.register = register
             self.login = login
             self.passwordResetRequest = passwordResetRequest
             self.passwordResetConfirm = passwordResetConfirm
+            self.magicLinkRequest = magicLinkRequest
+            self.magicLinkVerify = magicLinkVerify
         }
     }
 
@@ -54,7 +60,9 @@ extension Passage.Configuration.Views {
         return login != nil ||
         register != nil ||
         passwordResetRequest != nil ||
-        passwordResetConfirm != nil
+        passwordResetConfirm != nil ||
+        magicLinkRequest != nil ||
+        magicLinkVerify != nil
     }
 }
 
@@ -150,6 +158,46 @@ public extension Passage.Configuration.Views {
             style: Passage.Views.Style,
             theme: Passage.Views.Theme,
             redirect: Redirect = .init(),
+        ) {
+            self.style = style
+            self.theme = theme
+            self.redirect = redirect
+        }
+    }
+
+}
+
+// MARK: - Magic Link Views
+
+public extension Passage.Configuration.Views {
+
+    struct MagicLinkRequestView: Sendable, View {
+        let name: String = "magic-link-request"
+        let style: Passage.Views.Style
+        let theme: Passage.Views.Theme
+        let redirect: Redirect
+
+        public init(
+            style: Passage.Views.Style,
+            theme: Passage.Views.Theme,
+            redirect: Redirect = .init()
+        ) {
+            self.style = style
+            self.theme = theme
+            self.redirect = redirect
+        }
+    }
+
+    struct MagicLinkVerifyView: Sendable, View {
+        let name: String = "magic-link-verify"
+        let style: Passage.Views.Style
+        let theme: Passage.Views.Theme
+        let redirect: Redirect
+
+        public init(
+            style: Passage.Views.Style,
+            theme: Passage.Views.Theme,
+            redirect: Redirect
         ) {
             self.style = style
             self.theme = theme
