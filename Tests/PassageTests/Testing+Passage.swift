@@ -15,6 +15,7 @@ extension Tag {
     @Tag static var verifyPhone: Self
     @Tag static var resetPassword: Self
     @Tag static var federatedLogin: Self
+    @Tag static var passwordless: Self
 }
 
 // MARK: - Mock ViewRenderer for Testing
