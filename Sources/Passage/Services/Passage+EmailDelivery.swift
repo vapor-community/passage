@@ -35,6 +35,17 @@ public extension Passage {
             user: any User,
         ) async throws
 
+        /// Send magic link email for passwordless authentication
+        /// - Parameters:
+        ///   - email: The email address to send to
+        ///   - user: The user requesting the magic link (nil for new users)
+        ///   - magicLinkURL: The full URL containing the magic link token
+        func sendMagicLinkEmail(
+            to email: String,
+            user: (any User)?,
+            magicLinkURL: URL,
+        ) async throws
+
     }
 
 }

@@ -7,6 +7,7 @@ extension Passage.Views {
         let config: Passage.Configuration.Views
         let routes: Passage.Configuration.Routes
         let restoration: Passage.Configuration.Restoration
+        let passwordless: Passage.Configuration.Passwordless
         let group: [PathComponent]
 
         func boot(routes builder: any RoutesBuilder) throws {
@@ -49,6 +50,13 @@ extension Passage.Views {
                 )
             }
         }
+
+        if let _ = config.magicLinkRequest, let emailMagicLink = passwordless.emailMagicLink {
+            grouped.get(emailMagicLink.routes.request.path) { req in
+                try await req.views.renderMagicLinkRequestView()
+            }
+        }
+
     }
 
     }

@@ -29,6 +29,12 @@ struct ServicesTests {
         func markEmailVerified(for user: any User) async throws {}
         func markPhoneVerified(for user: any User) async throws {}
         func setPassword(for user: any User, passwordHash: String) async throws {}
+        func createWithEmail(_ email: String, verified: Bool) async throws -> any User {
+            MockUser(id: UUID(), email: email, phone: nil, username: nil, passwordHash: nil, isAnonymous: false, isEmailVerified: verified, isPhoneVerified: false)
+        }
+        func createWithPhone(_ phone: String, verified: Bool) async throws -> any User {
+            MockUser(id: UUID(), email: nil, phone: phone, username: nil, passwordHash: nil, isAnonymous: false, isEmailVerified: false, isPhoneVerified: verified)
+        }
     }
 
     struct MockTokenStore: Passage.TokenStore {
@@ -66,11 +72,19 @@ struct ServicesTests {
         func incrementFailedAttempts(for code: any PhonePasswordResetCode) async throws {}
     }
 
+    struct MockMagicLinkTokenStore: Passage.MagicLinkTokenStore {
+        func createEmailMagicLink(for user: (any User)?, identifier: Identifier, tokenHash: String, sessionTokenHash: String?, expiresAt: Date) async throws -> any MagicLinkToken { fatalError() }
+        func findEmailMagicLink(tokenHash: String) async throws -> (any MagicLinkToken)? { nil }
+        func invalidateEmailMagicLinks(for identifier: Identifier) async throws {}
+        func incrementFailedAttempts(for magicLink: any MagicLinkToken) async throws {}
+    }
+
     struct MockStore: Passage.Store {
         var users: any Passage.UserStore { MockUserStore() }
         var tokens: any Passage.TokenStore { MockTokenStore() }
         var verificationCodes: any Passage.VerificationCodeStore { MockVerificationCodeStore() }
         var restorationCodes: any Passage.RestorationCodeStore { MockRestorationCodeStore() }
+        var magicLinkTokens: any Passage.MagicLinkTokenStore { MockMagicLinkTokenStore() }
     }
 
     struct MockEmailDelivery: Passage.EmailDelivery {
@@ -78,6 +92,7 @@ struct ServicesTests {
         func sendEmailVerificationConfirmation(to email: String, user: any User) async throws {}
         func sendPasswordResetEmail(to email: String, user: any User, passwordResetURL: URL, passwordResetCode: String) async throws {}
         func sendWelcomeEmail(to email: String, user: any User) async throws {}
+        func sendMagicLinkEmail(to email: String, user: (any User)?, magicLinkURL: URL) async throws {}
     }
 
     struct MockPhoneDelivery: Passage.PhoneDelivery {

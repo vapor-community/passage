@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In With Email</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: #(theme.colors.background);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #(theme.colors.surface);
+            padding: 30px;
+            width: 450px;
+            max-width: 100%;
+            border-radius: 20px;
+        }
+
+        h1 {
+            color: #(theme.colors.onSurface);
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .error,
+        .success {
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .error {
+            background-color: #(theme.colors.error);
+            color: #(theme.colors.onError);
+            border: 1.5px solid #(theme.colors.error);
+        }
+
+        .success {
+            background-color: #(theme.colors.success);
+            color: #(theme.colors.onSuccess);
+            border: 1.5px solid #(theme.colors.success);
+        }
+
+        .flex-column {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .flex-column > label {
+            color: #(theme.colors.onSurface);
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .inputForm {
+            border: 1.5px solid #(theme.colors.outline);
+            border-radius: 10px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            transition: 0.2s ease-in-out;
+            background-color: #(theme.colors.surface);
+        }
+
+        .inputForm svg {
+            flex-shrink: 0;
+            opacity: 0.6;
+        }
+
+        .inputForm svg path {
+            fill: #(theme.colors.onSurface);
+        }
+
+        .input {
+            margin-left: 10px;
+            border-radius: 10px;
+            border: none;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: #(theme.colors.onSurface);
+            font-size: 15px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .input:focus {
+            outline: none;
+        }
+
+        .input::placeholder {
+            color: #(theme.colors.onSurfaceVariant);
+            opacity: 0.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .inputForm:focus-within {
+            border: 1.5px solid #(theme.colors.primary);
+        }
+
+        .button-submit {
+            margin: 20px 0 10px 0;
+            background-color: #(theme.colors.primary);
+            border: none;
+            color: #(theme.colors.onPrimary);
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 10px;
+            height: 50px;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.2s ease-in-out;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        .button-submit:hover {
+            filter: brightness(1.16);
+        }
+
+        .button-submit:active {
+            filter: brightness(0.82);
+        }
+
+        @media (max-width: 480px) {
+            .form {
+                padding: 25px 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <form class="form" method="POST">
+        <h1>Sign In With Email</h1>
+
+        #if(params.error):
+        <div class="error">#(params.error)</div>
+        #endif
+
+        #if(params.success):
+        <div class="success">A sign-in link has been sent to #(params.identifier)</div>
+        #else:
+        <!-- Email Input -->
+        #if(params.byEmail):
+        <div class="flex-column">
+            <label>Email Address</label>
+        </div>
+        <div class="inputForm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 32 32" height="20">
+                <g data-name="Layer 3" id="Layer_3">
+                    <path d="m30.853 13.87a15 15 0 0 0 -29.729 4.082 15.1 15.1 0 0 0 12.876 12.918 15.6 15.6 0 0 0 2.016.13 14.85 14.85 0 0 0 7.715-2.145 1 1 0 1 0 -1.031-1.711 13.007 13.007 0 1 1 5.458-6.529 2.149 2.149 0 0 1 -4.158-.759v-10.856a1 1 0 0 0 -2 0v1.726a8 8 0 1 0 .2 10.325 4.135 4.135 0 0 0 7.83.274 15.2 15.2 0 0 0 .823-7.455zm-14.853 8.13a6 6 0 1 1 6-6 6.006 6.006 0 0 1 -6 6z"></path>
+                </g>
+            </svg>
+            #if(params.byEmail):
+            <input
+                placeholder="Enter your Email"
+                class="input"
+                type="email"
+                id="email"
+                name="email"
+                required
+                autocomplete="email"
+            >
+            #endif
+        </div>
+        #endif
+
+        <button type="submit" class="button-submit">Send Magic Link</button>
+        #endif
+    </form>
+</body>
+</html>

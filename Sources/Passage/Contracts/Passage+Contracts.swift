@@ -15,6 +15,9 @@ public extension Passage {
         let phonePasswordResetRequestForm: any PhonePasswordResetRequestForm.Type
         let phonePasswordResetVerifyForm: any PhonePasswordResetVerifyForm.Type
         let phonePasswordResetResendForm: any PhonePasswordResetResendForm.Type
+        let emailMagicLinkRequestForm: any EmailMagicLinkRequestForm.Type
+        let emailMagicLinkVerifyForm: any EmailMagicLinkVerifyForm.Type
+        let emailMagicLinkResendForm: any EmailMagicLinkResendForm.Type
 
         public init(
             loginForm: (any LoginForm.Type)? = nil,
@@ -29,6 +32,9 @@ public extension Passage {
             phonePasswordResetRequestForm: (any PhonePasswordResetRequestForm.Type)? = nil,
             phonePasswordResetVerifyForm: (any PhonePasswordResetVerifyForm.Type)? = nil,
             phonePasswordResetResendForm: (any PhonePasswordResetResendForm.Type)? = nil,
+            emailMagicLinkRequestForm: (any EmailMagicLinkRequestForm.Type)? = nil,
+            emailMagicLinkVerifyForm: (any EmailMagicLinkVerifyForm.Type)? = nil,
+            emailMagicLinkResendForm: (any EmailMagicLinkResendForm.Type)? = nil,
 
         ) {
             self.loginForm = loginForm ?? DefaultLoginForm.self
@@ -43,6 +49,9 @@ public extension Passage {
             self.phonePasswordResetRequestForm = phonePasswordResetRequestForm ?? DefaultPhonePasswordResetRequestForm.self
             self.phonePasswordResetVerifyForm = phonePasswordResetVerifyForm ?? DefaultPhonePasswordResetVerifyForm.self
             self.phonePasswordResetResendForm = phonePasswordResetResendForm ?? DefaultPhonePasswordResetResendForm.self
+            self.emailMagicLinkRequestForm = emailMagicLinkRequestForm ?? DefaultEmailMagicLinkRequestForm.self
+            self.emailMagicLinkVerifyForm = emailMagicLinkVerifyForm ?? DefaultEmailMagicLinkVerifyForm.self
+            self.emailMagicLinkResendForm = emailMagicLinkResendForm ?? DefaultEmailMagicLinkResendForm.self
         }
     }
 

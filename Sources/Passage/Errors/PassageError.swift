@@ -6,6 +6,7 @@ public enum PassageError: Error {
     case jwksNotConfigured
     case emailDeliveryNotConfigured
     case phoneDeliveryNotConfigured
+    case emailMagicLinkNotConfigured
     case missingEnvironmentVariable(name: String)
     case unexpected(message: String)
 }
@@ -13,7 +14,7 @@ public enum PassageError: Error {
 extension PassageError: AbortError {
     public var status: HTTPResponseStatus {
         switch self {
-        case .notConfigured, .storeNotConfigured, .jwksNotConfigured, .emailDeliveryNotConfigured, .phoneDeliveryNotConfigured, .unexpected:
+        case .notConfigured, .storeNotConfigured, .jwksNotConfigured, .emailDeliveryNotConfigured, .phoneDeliveryNotConfigured, .emailMagicLinkNotConfigured, .unexpected:
             return .internalServerError
         case .missingEnvironmentVariable(name: _):
             return .internalServerError
@@ -32,6 +33,8 @@ extension PassageError: AbortError {
             return "Email delivery is not configured. Provide deliveryEmail in app.passage.configure()."
         case .phoneDeliveryNotConfigured:
             return "Phone delivery is not configured. Provide deliveryPhone in app.passage.configure()."
+        case .emailMagicLinkNotConfigured:
+            return "Email magic link is not configured. Provide emailMagicLink in passwordless configuration."
         case .unexpected(let message):
             return message
         case .missingEnvironmentVariable(name: let name):

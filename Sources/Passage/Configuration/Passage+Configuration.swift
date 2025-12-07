@@ -8,6 +8,7 @@ extension Passage {
         let routes: Routes
         let tokens: Tokens
         let jwt: JWT
+        let passwordless: Passwordless
         let verification: Verification
         let restoration: Restoration
         let oauth: FederatedLogin
@@ -18,6 +19,7 @@ extension Passage {
             routes: Routes = .init(),
             tokens: Tokens = .init(),
             jwt: JWT? = nil,
+            passwordless: Passwordless = .init(),
             verification: Verification = .init(),
             restoration: Restoration = .init(),
             oauth: FederatedLogin = .init(routes: .init(), providers: []),
@@ -27,6 +29,7 @@ extension Passage {
             self.routes = routes
             self.tokens = tokens
             self.jwt = try jwt ?? JWT(jwks: try .fileFromEnvironment())
+            self.passwordless = passwordless
             self.verification = verification
             self.restoration = restoration
             self.oauth = oauth

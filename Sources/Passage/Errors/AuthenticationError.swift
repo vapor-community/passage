@@ -42,6 +42,13 @@ public enum AuthenticationError: Error {
     case restorationCodeMaxAttempts
     case restorationIdentifierNotFound
     case restorationDeliveryNotAvailable
+
+    // Magic link (passwordless) errors
+    case magicLinkInvalid
+    case magicLinkExpired
+    case magicLinkMaxAttempts
+    case magicLinkEmailNotFound
+    case magicLinkDifferentBrowser
 }
 
 extension AuthenticationError: AbortError {
@@ -77,6 +84,14 @@ extension AuthenticationError: AbortError {
             return .notFound
         case .restorationDeliveryNotAvailable:
             return .serviceUnavailable
+        case .magicLinkInvalid:
+            return .unauthorized
+        case .magicLinkExpired, .magicLinkMaxAttempts:
+            return .gone
+        case .magicLinkEmailNotFound:
+            return .notFound
+        case .magicLinkDifferentBrowser:
+            return .forbidden
         }
     }
 
@@ -134,6 +149,16 @@ extension AuthenticationError: AbortError {
             return "No account found with this identifier."
         case .restorationDeliveryNotAvailable:
             return "Password reset delivery is not available for this identifier type."
+        case .magicLinkInvalid:
+            return "Invalid magic link token."
+        case .magicLinkExpired:
+            return "Magic link has expired."
+        case .magicLinkMaxAttempts:
+            return "Maximum magic link verification attempts exceeded."
+        case .magicLinkEmailNotFound:
+            return "No account found with this email address and auto-creation is disabled."
+        case .magicLinkDifferentBrowser:
+            return "Magic link must be opened in the same browser where it was requested."
         }
     }
 }

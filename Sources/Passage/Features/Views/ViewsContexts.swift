@@ -26,6 +26,8 @@ extension Passage.Views {
         let success: String?
         let registerLink: String?
         let resetPasswordLink: String?
+        let byEmailMagicLink: Bool?
+        let magicLinkRequestLink: String?
 
         func copyWith(
             byEmail: Bool? = nil,
@@ -38,6 +40,8 @@ extension Passage.Views {
             success: String? = nil,
             registerLink: String? = nil,
             resetPasswordLink: String? = nil,
+            byEmailMagicLink: Bool? = nil,
+            magicLinkRequestLink: String? = nil
         ) -> Self {
             .init(
                 byEmail: byEmail ?? self.byEmail,
@@ -50,6 +54,8 @@ extension Passage.Views {
                 success: success ?? self.success,
                 registerLink: registerLink ?? self.registerLink,
                 resetPasswordLink: resetPasswordLink ?? self.resetPasswordLink,
+                byEmailMagicLink: byEmailMagicLink ?? self.byEmailMagicLink,
+                magicLinkRequestLink: magicLinkRequestLink ?? self.magicLinkRequestLink
             )
         }
     }
@@ -154,6 +160,60 @@ extension Passage.Views {
             )
         }
 
+    }
+
+}
+
+// MARK: - Magic Link Request View Context
+
+extension Passage.Views {
+
+    struct MagicLinkRequestViewContext: Content {
+        let byEmail: Bool
+        let error: String?
+        let success: String?
+        let identifier: String?
+
+        func copyWith(
+            byEmail: Bool? = nil,
+            error: String? = nil,
+            success: String? = nil,
+            identifier: String? = nil
+        ) -> Self {
+            .init(
+                byEmail: byEmail ?? self.byEmail,
+                error: error ?? self.error,
+                success: success ?? self.success,
+                identifier: identifier ?? self.identifier
+            )
+        }
+    }
+
+}
+
+// MARK: - Magic Link Verify View Context
+
+extension Passage.Views {
+
+    struct MagicLinkVerifyViewContext: Content {
+        let error: String?
+        let success: String?
+        let redirectUrl: String?
+        let loginLink: String?
+
+        func copyWith(
+            error: String? = nil,
+            success: String? = nil,
+            redirectUrl: String? = nil,
+            loginLink: String? = nil
+        ) -> Self {
+            .init(
+                error: error ?? self.error,
+                success: success ?? self.success,
+                redirectUrl: redirectUrl ?? self.redirectUrl,
+                loginLink: loginLink ?? self.loginLink
+            )
+        }
     }
 
 }

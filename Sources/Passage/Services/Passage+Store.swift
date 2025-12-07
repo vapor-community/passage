@@ -9,6 +9,7 @@ public extension Passage {
         var tokens: any TokenStore { get }
         var verificationCodes: any VerificationCodeStore { get }
         var restorationCodes: any RestorationCodeStore { get }
+        var magicLinkTokens: any MagicLinkTokenStore { get }
     }
 
 }
@@ -27,6 +28,20 @@ public extension Passage {
         func markEmailVerified(for user: any User) async throws
         func markPhoneVerified(for user: any User) async throws
         func setPassword(for user: any User, passwordHash: String) async throws
+
+        /// Create a new user with just an email address (for passwordless flows)
+        /// - Parameters:
+        ///   - email: The email address for the new user
+        ///   - verified: Whether the email should be marked as verified
+        /// - Returns: The newly created user
+        func createWithEmail(_ email: String, verified: Bool) async throws -> any User
+
+        /// Create a new user with just a phone number (for passwordless flows)
+        /// - Parameters:
+        ///  - phone: The phone number for the new user
+        ///  - verified: Whether the phone number should be marked as verified
+        ///  - Returns: The newly created user
+        func createWithPhone(_ phone: String, verified: Bool) async throws -> any User
     }
 
 }
@@ -165,6 +180,43 @@ public extension Passage {
 
         /// Increment failed attempt count for phone reset code
         func incrementFailedAttempts(for code: any PhonePasswordResetCode) async throws
+    }
+
+}
+
+// MARK: - Magic Link Code Store
+
+public extension Passage {
+
+    protocol MagicLinkTokenStore: Sendable {
+
+        // MARK: Email Magic Links
+
+        /// Create a new email magic link code
+        /// - Parameters:
+        ///   - user: The user associated with the magic link (nil for new users when auto-create is enabled)
+        ///   - identifier: The identifier to send the magic link to (email, phone, etc.)
+        ///   - tokenHash: SHA256 hash of the magic link token
+        ///   - sessionTokenHash: SHA256 hash of the session token for same-browser verification (nil if not required)
+        ///   - expiresAt: Expiration date for the magic link
+        /// - Returns: The created magic link code
+        @discardableResult
+        func createEmailMagicLink(
+            for user: (any User)?,
+            identifier: Identifier,
+            tokenHash: String,
+            sessionTokenHash: String?,
+            expiresAt: Date
+        ) async throws -> any MagicLinkToken
+
+        /// Find an email magic link by its token hash
+        func findEmailMagicLink(tokenHash: String) async throws -> (any MagicLinkToken)?
+
+        /// Invalidate all pending magic links for the given identifier
+        func invalidateEmailMagicLinks(for identifier: Identifier) async throws
+
+        /// Increment the failed attempt count for a magic link
+        func incrementFailedAttempts(for magicLink: any MagicLinkToken) async throws
     }
 
 }

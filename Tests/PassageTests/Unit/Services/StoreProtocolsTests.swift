@@ -69,6 +69,7 @@ struct StoreProtocolsTests {
     // MARK: - UserStore Protocol Tests
 
     struct MockUserStore: Passage.UserStore {
+
         typealias ConcreateUser = MockUser
         var userType: MockUser.Type { MockUser.self }
 
@@ -98,6 +99,14 @@ struct StoreProtocolsTests {
 
         func setPassword(for user: any User, passwordHash: String) async throws {
             // Method signature test
+        }
+
+        func createWithEmail(_ email: String, verified: Bool) async throws -> any User {
+            MockUser(id: UUID(), email: email, phone: nil, username: nil, passwordHash: nil, isAnonymous: false, isEmailVerified: verified, isPhoneVerified: false)
+        }
+
+        func createWithPhone(_ phone: String, verified: Bool) async throws -> any User {
+            MockUser(id: UUID(), email: nil, phone: phone, username: nil, passwordHash: nil, isAnonymous: false, isEmailVerified: false, isPhoneVerified: verified)
         }
     }
 
@@ -328,6 +337,39 @@ struct StoreProtocolsTests {
         #expect(store is MockRestorationCodeStore)
     }
 
+    // MARK: - MagicLinkTokenStore Protocol Tests
+
+    struct MockMagicLinkToken: MagicLinkToken {
+        typealias AssociatedUser = MockUser
+        var user: MockUser?
+        var identifier: Identifier
+        var tokenHash: String
+        var sessionTokenHash: String?
+        var expiresAt: Date
+        var failedAttempts: Int
+    }
+
+    struct MockMagicLinkTokenStore: Passage.MagicLinkTokenStore {
+        func createEmailMagicLink(for user: (any User)?, identifier: Identifier, tokenHash: String, sessionTokenHash: String?, expiresAt: Date) async throws -> any MagicLinkToken {
+            MockMagicLinkToken(user: user as? MockUser, identifier: identifier, tokenHash: tokenHash, sessionTokenHash: sessionTokenHash, expiresAt: expiresAt, failedAttempts: 0)
+        }
+        func findEmailMagicLink(tokenHash: String) async throws -> (any MagicLinkToken)? { nil }
+        func invalidateEmailMagicLinks(for identifier: Identifier) async throws {}
+        func incrementFailedAttempts(for magicLink: any MagicLinkToken) async throws {}
+    }
+
+    @Test("MagicLinkTokenStore protocol can be implemented")
+    func magicLinkTokenStoreProtocolImplementation() {
+        let store: any Passage.MagicLinkTokenStore = MockMagicLinkTokenStore()
+        #expect(store is MockMagicLinkTokenStore)
+    }
+
+    @Test("MagicLinkTokenStore protocol conforms to Sendable")
+    func magicLinkTokenStoreProtocolIsSendable() {
+        let store: any Sendable = MockMagicLinkTokenStore()
+        #expect(store is MockMagicLinkTokenStore)
+    }
+
     // MARK: - Store Protocol Tests
 
     struct MockStore: Passage.Store {
@@ -335,6 +377,7 @@ struct StoreProtocolsTests {
         var tokens: any Passage.TokenStore { MockTokenStore() }
         var verificationCodes: any Passage.VerificationCodeStore { MockVerificationCodeStore() }
         var restorationCodes: any Passage.RestorationCodeStore { MockRestorationCodeStore() }
+        var magicLinkTokens: any Passage.MagicLinkTokenStore { MockMagicLinkTokenStore() }
     }
 
     @Test("Store protocol can be implemented")
@@ -357,5 +400,6 @@ struct StoreProtocolsTests {
         #expect(store.tokens is MockTokenStore)
         #expect(store.verificationCodes is MockVerificationCodeStore)
         #expect(store.restorationCodes is MockRestorationCodeStore)
+        #expect(store.magicLinkTokens is MockMagicLinkTokenStore)
     }
 }

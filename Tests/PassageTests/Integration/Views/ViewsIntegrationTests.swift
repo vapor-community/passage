@@ -65,6 +65,9 @@ struct ViewsIntegrationTests {
         {"keys":[]}
         """
 
+        // Configure queues for tests that need passwordless
+        app.queues.use(.asyncTest)
+
         let configuration = try Passage.Configuration(
             origin: URL(string: "http://localhost:8080")!,
             routes: .init(),
@@ -74,6 +77,9 @@ struct ViewsIntegrationTests {
                 refreshToken: .init(timeToLive: 86400)
             ),
             jwt: .init(jwks: .init(json: emptyJwks)),
+            passwordless: .init(
+                emailMagicLink: .email(useQueues: true)
+            ),
             verification: .init(
                 email: .init(
                     codeLength: 6,
@@ -1078,6 +1084,437 @@ struct ViewsIntegrationTests {
             // Verify redirect configuration is stored
             #expect(app.passage.storage.configuration.views.login?.redirect.onSuccess == "/dashboard")
             #expect(app.passage.storage.configuration.views.login?.redirect.onFailure == "/error")
+        }
+    }
+
+    // MARK: - Magic Link Request View 404 Tests
+
+    @Test("Magic link request view returns 404 when not configured")
+    func magicLinkRequestViewNotConfigured() async throws {
+        let viewsConfig = Passage.Configuration.Views()
+
+        try await withApp(configure: { app in try await configure(app, viewsConfig: viewsConfig) }) { app in
+            try await app.testing().test(.GET, "/auth/magic-link/email", afterResponse: { res in
+                #expect(res.status == .notFound)
+            })
+        }
+    }
+
+    // MARK: - Magic Link Request View Rendering Tests
+
+    @Test("Magic link request view renders magic-link-request-minimalism template")
+    func magicLinkRequestViewRendersMinimalism() async throws {
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkRequest: magicLinkRequestView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/magic-link/email", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "magic-link-request-minimalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkRequestViewContext>
+                #expect(ctx?.params.byEmail == true)
+            })
+        }
+    }
+
+    @Test("Magic link request view renders magic-link-request-neobrutalism template")
+    func magicLinkRequestViewRendersNeobrutalism() async throws {
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .neobrutalism,
+            theme: Passage.Views.Theme(colors: .oceanLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkRequest: magicLinkRequestView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/magic-link/email", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "magic-link-request-neobrutalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkRequestViewContext>
+                #expect(ctx?.params.byEmail == true)
+            })
+        }
+    }
+
+    @Test("Magic link request view captures query parameters in context")
+    func magicLinkRequestViewRendersWithParams() async throws {
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkRequest: magicLinkRequestView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/magic-link/email?error=Invalid+email", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "magic-link-request-minimalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkRequestViewContext>
+                #expect(ctx?.params.error == "Invalid email")
+            })
+        }
+    }
+
+    // MARK: - Magic Link Request Form Submission Tests
+
+    @Test("Magic link request form submission succeeds and redirects with success message")
+    func magicLinkRequestFormSubmissionSucceeds() async throws {
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkRequest: magicLinkRequestView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            let email = "user@example.com"
+
+            try await app.testing().test(.POST, "/auth/magic-link/email", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)"), afterResponse: { res in
+                #expect(res.status == .seeOther || res.status == .found)
+
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+
+                #expect(location?.contains("/auth/magic-link/email") == true)
+                #expect(location?.contains("success=") == true)
+                #expect(location?.contains("identifier=\(email)") == true)
+            })
+        }
+    }
+
+    @Test("Magic link request form submission fails with invalid email format")
+    func magicLinkRequestFormSubmissionFailsWithInvalidEmail() async throws {
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkRequest: magicLinkRequestView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            try await app.testing().test(.POST, "/auth/magic-link/email", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=invalid-email"), afterResponse: { res in
+                #expect(res.status == .seeOther || res.status == .found)
+
+                let location = res.headers.first(name: .location)
+                #expect(location != nil)
+                #expect(location?.contains("/auth/magic-link/email") == true)
+                #expect(location?.contains("error=") == true)
+            })
+        }
+    }
+
+    @Test("Magic link request form submission with custom redirect on success")
+    func magicLinkRequestFormSubmissionWithCustomSuccessRedirect() async throws {
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: "/check-email",
+            onFailure: nil
+        )
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkRequest: magicLinkRequestView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            let email = "user@example.com"
+
+            try await app.testing().test(.POST, "/auth/magic-link/email", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=\(email)"), afterResponse: { res in
+                #expect(res.status == .seeOther || res.status == .found)
+
+                let location = res.headers.first(name: .location)
+                #expect(location == "/check-email")
+            })
+        }
+    }
+
+    @Test("Magic link request form submission with custom redirect on failure")
+    func magicLinkRequestFormSubmissionWithCustomFailureRedirect() async throws {
+        let redirect = Passage.Configuration.Views.Redirect(
+            onSuccess: nil,
+            onFailure: "/magic-link-error"
+        )
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: redirect
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkRequest: magicLinkRequestView)
+
+        try await withApp { app in
+            try await configure(app, viewsConfig: viewsConfig)
+
+            try await app.testing().test(.POST, "/auth/magic-link/email", headers: [
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "text/html"
+            ], body: .init(string: "email=invalid-email"), afterResponse: { res in
+                #expect(res.status == .seeOther || res.status == .found)
+
+                let location = res.headers.first(name: .location)
+                #expect(location == "/magic-link-error")
+            })
+        }
+    }
+
+    // MARK: - Magic Link Verify View 404 Tests
+
+    @Test("Magic link verify view returns API response when views not configured")
+    func magicLinkVerifyViewNotConfigured() async throws {
+        let viewsConfig = Passage.Configuration.Views()
+
+        try await withApp(configure: { app in try await configure(app, viewsConfig: viewsConfig) }) { app in
+            // When views are not configured, the API endpoint is still available
+            // and returns 401 for invalid token instead of 404
+            try await app.testing().test(.GET, "/auth/magic-link/email/verify?token=test", afterResponse: { res in
+                #expect(res.status == .unauthorized)
+            })
+        }
+    }
+
+    // MARK: - Magic Link Verify View Rendering Tests
+
+    @Test("Magic link verify view renders magic-link-verify-minimalism template")
+    func magicLinkVerifyViewRendersMinimalism() async throws {
+        let magicLinkVerifyView = Passage.Configuration.Views.MagicLinkVerifyView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: .init(onSuccess: "/dashboard")
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkVerify: magicLinkVerifyView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/magic-link/email/verify", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "magic-link-verify-minimalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkVerifyViewContext>
+                #expect(ctx?.params.error == "Failed to verify magic link. Please try again.")
+            })
+        }
+    }
+
+    @Test("Magic link verify view renders magic-link-verify-neobrutalism template")
+    func magicLinkVerifyViewRendersNeobrutalism() async throws {
+        let magicLinkVerifyView = Passage.Configuration.Views.MagicLinkVerifyView(
+            style: .neobrutalism,
+            theme: Passage.Views.Theme(colors: .oceanLight),
+            redirect: .init(onSuccess: "/dashboard")
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkVerify: magicLinkVerifyView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/magic-link/email/verify", afterResponse: { res in
+                #expect(res.status == .ok)
+                #expect(renderer.templatePath == "magic-link-verify-neobrutalism")
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkVerifyViewContext>
+                #expect(ctx?.params.error == "Failed to verify magic link. Please try again.")
+            })
+        }
+    }
+
+    // MARK: - Magic Link Verify Success/Error Redirection Tests
+
+    @Test("Magic link verify renders success view on valid token")
+    func magicLinkVerifyRendersSuccessOnValidToken() async throws {
+        let captured = CapturedMessages()
+        let magicLinkVerifyView = Passage.Configuration.Views.MagicLinkVerifyView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: .init(onSuccess: "/dashboard")
+        )
+        let viewsConfig = Passage.Configuration.Views(magicLinkVerify: magicLinkVerifyView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer, captured: captured)
+
+            let email = "verify@example.com"
+
+            // Request magic link
+            try await app.testing().test(.POST, "/auth/magic-link/email", beforeRequest: { req in
+                try req.content.encode(["email": email])
+            })
+
+            try await app.queues.queue.worker.run()
+
+            let magicLinkURL = try #require(captured.emails.first?.magicLinkURL)
+            let components = URLComponents(url: magicLinkURL, resolvingAgainstBaseURL: false)
+            let token = try #require(components?.queryItems?.first(where: { $0.name == "token" })?.value)
+
+            // Encode token for URL
+            var allowed = CharacterSet.urlQueryAllowed
+            allowed.remove(charactersIn: "+/=")
+            let encodedToken = try #require(token.addingPercentEncoding(withAllowedCharacters: allowed))
+
+            // Verify magic link - should render success view directly
+            try await app.testing().test(.GET, "/auth/magic-link/email/verify?token=\(encodedToken)") { res in
+                #expect(res.status == .ok)
+
+                // Verify the template was rendered
+                #expect(renderer.templatePath == "magic-link-verify-minimalism")
+
+                // Verify success message and redirect URL are in context
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkVerifyViewContext>
+                #expect(ctx?.params.success != nil)
+                #expect(ctx?.params.redirectUrl == "/dashboard")
+            }
+        }
+    }
+
+    @Test("Magic link verify renders error view on invalid token")
+    func magicLinkVerifyRendersErrorOnInvalidToken() async throws {
+        let magicLinkVerifyView = Passage.Configuration.Views.MagicLinkVerifyView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            redirect: .init(onSuccess: "/dashboard")
+        )
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(
+            login: loginView,
+            magicLinkVerify: magicLinkVerifyView
+        )
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            // Verify with invalid token - should render error view directly
+            try await app.testing().test(.GET, "/auth/magic-link/email/verify?token=invalid-token") { res in
+                #expect(res.status == .ok)
+
+                // Verify the template was rendered
+                #expect(renderer.templatePath == "magic-link-verify-minimalism")
+
+                // Verify error message and login link are in context
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkVerifyViewContext>
+                #expect(ctx?.params.error != nil)
+                #expect(ctx?.params.loginLink == "/login")
+            }
+        }
+    }
+
+    // MARK: - Login View Magic Link Button Tests
+
+    @Test("Login view includes magic link button when magic link is configured")
+    func loginViewIncludesMagicLinkButton() async throws {
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let viewsConfig = Passage.Configuration.Views(
+            login: loginView,
+            magicLinkRequest: magicLinkRequestView
+        )
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/login", afterResponse: { res in
+                #expect(res.status == .ok)
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.LoginViewContext>
+                #expect(ctx?.params.byEmailMagicLink == true)
+                #expect(ctx?.params.magicLinkRequestLink != nil)
+                // Path doesn't include group prefix, just the route path
+                #expect(ctx?.params.magicLinkRequestLink?.contains("magic-link/email") == true)
+            })
+        }
+    }
+
+    @Test("Login view does not include magic link button when magic link is not configured")
+    func loginViewExcludesMagicLinkButtonWhenNotConfigured() async throws {
+        let loginView = Passage.Configuration.Views.LoginView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight),
+            identifier: .email
+        )
+        let viewsConfig = Passage.Configuration.Views(login: loginView)
+
+        try await withApp { app in
+            let renderer = CapturingViewRenderer(eventLoop: app.eventLoopGroup.any())
+            try await configure(app, viewsConfig: viewsConfig, captureRenderer: renderer)
+
+            try await app.testing().test(.GET, "/auth/login", afterResponse: { res in
+                #expect(res.status == .ok)
+
+                let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.LoginViewContext>
+                #expect(ctx?.params.byEmailMagicLink == false)
+                #expect(ctx?.params.magicLinkRequestLink == nil)
+            })
+        }
+    }
+
+    // MARK: - Magic Link Configuration Integration Tests
+
+    @Test("Magic link views configuration is properly integrated")
+    func magicLinkViewsConfigurationIntegration() async throws {
+        let magicLinkRequestView = Passage.Configuration.Views.MagicLinkRequestView(
+            style: .minimalism,
+            theme: Passage.Views.Theme(colors: .defaultLight)
+        )
+        let magicLinkVerifyView = Passage.Configuration.Views.MagicLinkVerifyView(
+            style: .neobrutalism,
+            theme: Passage.Views.Theme(colors: .oceanLight),
+            redirect: .init(onSuccess: "/dashboard")
+        )
+
+        let viewsConfig = Passage.Configuration.Views(
+            magicLinkRequest: magicLinkRequestView,
+            magicLinkVerify: magicLinkVerifyView
+        )
+
+        #expect(viewsConfig.enabled == true)
+        #expect(viewsConfig.magicLinkRequest != nil)
+        #expect(viewsConfig.magicLinkVerify != nil)
+
+        try await withApp(configure: { app in try await configure(app, viewsConfig: viewsConfig) }) { app in
+            #expect(app.passage.storage.configuration.views.enabled == true)
+            #expect(app.passage.storage.configuration.views.magicLinkRequest?.style == .minimalism)
+            #expect(app.passage.storage.configuration.views.magicLinkVerify?.style == .neobrutalism)
+            #expect(app.passage.storage.configuration.views.magicLinkVerify?.redirect.onSuccess == "/dashboard")
         }
     }
 }

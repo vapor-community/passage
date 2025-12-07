@@ -56,6 +56,14 @@ struct DeliveryProtocolsTests {
         ) async throws {
             // Method signature test
         }
+
+        func sendMagicLinkEmail(
+            to email: String,
+            user: (any User)?,
+            magicLinkURL: URL
+        ) async throws {
+            // Method signature test
+        }
     }
 
     @Test("EmailDelivery protocol can be implemented")
@@ -274,6 +282,14 @@ struct DeliveryProtocolsTests {
         ) async throws {
             emailsSent += 1
         }
+
+        func sendMagicLinkEmail(
+            to email: String,
+            user: (any User)?,
+            magicLinkURL: URL
+        ) async throws {
+            emailsSent += 1
+        }
     }
 
     @Test("Custom actor-based EmailDelivery implementation")
@@ -335,6 +351,14 @@ struct DeliveryProtocolsTests {
         func sendWelcomeEmail(
             to email: String,
             user: any User
+        ) async throws {
+            throw DeliveryError()
+        }
+
+        func sendMagicLinkEmail(
+            to email: String,
+            user: (any User)?,
+            magicLinkURL: URL
         ) async throws {
             throw DeliveryError()
         }

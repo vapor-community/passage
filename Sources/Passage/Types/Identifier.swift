@@ -1,4 +1,4 @@
-public struct Identifier: Sendable {
+public struct Identifier: Codable, Sendable, Equatable {
 
     public enum Kind: String, Codable, Sendable {
         case email

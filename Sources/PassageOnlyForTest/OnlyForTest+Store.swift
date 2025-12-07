@@ -116,6 +116,28 @@ extension Passage.OnlyForTest {
         var expiresAt: Date
         var failedAttempts: Int
     }
+
+    struct InMemoryMagicLinkToken: MagicLinkToken, @unchecked Sendable {
+        var userId: String?
+        var user: InMemoryUser? {
+            guard let userId = userId else { return nil }
+            return InMemoryUser(
+                id: userId,
+                email: identifier.kind == .email ? identifier.value : nil,
+                phone: identifier.kind == .phone ? identifier.value : nil,
+                username: identifier.kind == .username ? identifier.value : nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+        }
+        var identifier: Identifier
+        var tokenHash: String
+        var sessionTokenHash: String?
+        var expiresAt: Date
+        var failedAttempts: Int
+    }
 }
 
 // MARK: - InMemoryUserStore
@@ -181,6 +203,50 @@ public extension Passage.OnlyForTest.InMemoryStore {
         public func setPassword(for user: any User, passwordHash: String) async throws {
             guard let userId = user.id?.description else { return }
             users[userId]?.passwordHash = passwordHash
+        }
+
+        public func createWithEmail(_ email: String, verified: Bool) async throws -> any User {
+            // Check for duplicate identifier
+            if identifierIndex[email] != nil {
+                throw AuthenticationError.emailAlreadyRegistered
+            }
+
+            let userId = UUID().uuidString
+            let user = Passage.OnlyForTest.InMemoryUser(
+                id: userId,
+                email: email,
+                phone: nil,
+                username: nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: verified,
+                isPhoneVerified: false
+            )
+            users[userId] = user
+            identifierIndex[email] = userId
+            return user
+        }
+
+        public func createWithPhone(_ phone: String, verified: Bool) async throws -> any User {
+            // Check for duplicate identifier
+            if identifierIndex[phone] != nil {
+                throw AuthenticationError.phoneAlreadyRegistered
+            }
+
+            let userId = UUID().uuidString
+            let user = Passage.OnlyForTest.InMemoryUser(
+                id: userId,
+                email: nil,
+                phone: phone,
+                username: nil,
+                passwordHash: nil,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: verified
+            )
+            users[userId] = user
+            identifierIndex[phone] = userId
+            return user
         }
     }
 
@@ -470,4 +536,49 @@ public extension Passage.OnlyForTest.InMemoryStore {
             phoneResetCodes[key]?.failedAttempts += 1
         }
     }
+}
+
+// MARK: - InMemoryMagicLinkTokenStore
+
+public extension Passage.OnlyForTest.InMemoryStore {
+
+    final class InMemoryMagicLinkTokenStore: Passage.MagicLinkTokenStore, @unchecked Sendable {
+
+        private var emailMagicLinks: [String: Passage.OnlyForTest.InMemoryMagicLinkToken] = [:]
+
+        // MARK: Email Magic Links
+
+        @discardableResult
+        public func createEmailMagicLink(
+            for user: (any User)?,
+            identifier: Identifier,
+            tokenHash: String,
+            sessionTokenHash: String?,
+            expiresAt: Date
+        ) async throws -> any MagicLinkToken {
+            let code = Passage.OnlyForTest.InMemoryMagicLinkToken(
+                userId: user?.id?.description,
+                identifier: identifier,
+                tokenHash: tokenHash,
+                sessionTokenHash: sessionTokenHash,
+                expiresAt: expiresAt,
+                failedAttempts: 0
+            )
+            emailMagicLinks[tokenHash] = code
+            return code
+        }
+
+        public func findEmailMagicLink(tokenHash: String) async throws -> (any MagicLinkToken)? {
+            return emailMagicLinks[tokenHash]
+        }
+
+        public func invalidateEmailMagicLinks(for identifier: Identifier) async throws {
+            emailMagicLinks = emailMagicLinks.filter { $0.value.identifier != identifier }
+        }
+
+        public func incrementFailedAttempts(for magicLink: any MagicLinkToken) async throws {
+            emailMagicLinks[magicLink.tokenHash]?.failedAttempts += 1
+        }
+    }
+
 }

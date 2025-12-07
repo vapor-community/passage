@@ -10,6 +10,7 @@ A comprehensive identity management and authentication framework for Vapor appli
 - 📧 **Email Authentication** - Email-based identifier with verification codes
 - 📱 **Phone Authentication** - Phone number identifier with SMS verification
 - 👤 **Username & Password** - Traditional username/password authentication
+- ✨ **Passwordless Magic Links** - Email-based passwordless authentication with one-click login
 - 🎫 **JWT Access Tokens** - Stateless authentication with JWKS support
 - 🔄 **Refresh Token Rotation** - Secure token refresh with family-based revocation
 - 🔑 **Password Reset Flow** - Email and phone-based password recovery
@@ -280,6 +281,17 @@ try await app.passage.configure(
             useQueues: true
         ),
 
+        // Passwordless authentication (magic links)
+        passwordless: .init(
+            emailMagicLink: .email(
+                linkExpiration: 900,    // 15 minutes
+                maxAttempts: 5,
+                autoCreateUser: true,   // Create user on first magic link verification
+                requireSameBrowser: false,
+                useQueues: true
+            )
+        ),
+
         // OAuth provider configuration
         oauth: .init(
             routes: .init(
@@ -311,6 +323,7 @@ try await app.passage.configure(
 - **JWT/JWKS**: Configure issuer, audience, and load JWKS from environment or file
 - **Verification**: Enable/disable email/phone verification, set code TTLs, enable async queue processing
 - **Restoration**: Configure password reset flows for email/phone
+- **Passwordless**: Configure magic link authentication with link expiration, auto-create users, and same-browser verification
 - **OAuth**: Define providers and callback routes
 - **Views**: Enable web forms with customizable Leaf templates
 

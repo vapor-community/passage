@@ -15,12 +15,14 @@ public extension Passage.OnlyForTest {
             public let verificationCode: String?
             public let passwordResetURL: URL?
             public let passwordResetCode: String?
+            public let magicLinkURL: URL?
 
             public enum EmailType: String, Sendable {
                 case verification
                 case verificationConfirmation
                 case passwordReset
                 case welcome
+                case magicLink
             }
         }
 
@@ -45,7 +47,8 @@ public extension Passage.OnlyForTest {
                 verificationURL: verificationURL,
                 verificationCode: verificationCode,
                 passwordResetURL: nil,
-                passwordResetCode: nil
+                passwordResetCode: nil,
+                magicLinkURL: nil
             )
             callback?(ephemeralEmail)
         }
@@ -61,7 +64,8 @@ public extension Passage.OnlyForTest {
                 verificationURL: nil,
                 verificationCode: nil,
                 passwordResetURL: nil,
-                passwordResetCode: nil
+                passwordResetCode: nil,
+                magicLinkURL: nil
             )
             callback?(ephemeralEmail)
         }
@@ -79,7 +83,8 @@ public extension Passage.OnlyForTest {
                 verificationURL: nil,
                 verificationCode: nil,
                 passwordResetURL: passwordResetURL,
-                passwordResetCode: passwordResetCode
+                passwordResetCode: passwordResetCode,
+                magicLinkURL: nil
             )
             callback?(ephemeralEmail)
         }
@@ -95,7 +100,26 @@ public extension Passage.OnlyForTest {
                 verificationURL: nil,
                 verificationCode: nil,
                 passwordResetURL: nil,
-                passwordResetCode: nil
+                passwordResetCode: nil,
+                magicLinkURL: nil
+            )
+            callback?(ephemeralEmail)
+        }
+
+        public func sendMagicLinkEmail(
+            to email: String,
+            user: (any User)?,
+            magicLinkURL: URL
+        ) async throws {
+            let ephemeralEmail = EphemeralEmail(
+                to: email,
+                user: user?.id?.description,
+                type: .magicLink,
+                verificationURL: nil,
+                verificationCode: nil,
+                passwordResetURL: nil,
+                passwordResetCode: nil,
+                magicLinkURL: magicLinkURL
             )
             callback?(ephemeralEmail)
         }

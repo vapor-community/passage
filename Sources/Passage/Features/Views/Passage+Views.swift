@@ -53,6 +53,15 @@ extension Passage.Views {
             throw Abort(.notFound)
         }
         let params = try request.query.decode(LoginViewContext.self)
+
+        // Check if magic link is enabled (requires both passwordless backend AND views config)
+        let magicLinkEnabled = request.configuration.passwordless.emailMagicLink != nil &&
+                              config.magicLinkRequest != nil
+
+        let magicLinkPath = magicLinkEnabled
+            ? request.configuration.passwordless.emailMagicLink?.routes.request.path
+            : nil
+
         return try await request.view.render(
             view.template,
             Context(
@@ -64,6 +73,8 @@ extension Passage.Views {
                     withGoogle: true,
                     registerLink: "/test",
                     resetPasswordLink: "/test",
+                    byEmailMagicLink: magicLinkEnabled,
+                    magicLinkRequestLink: magicLinkPath.map { "/\($0.string)" }
                 ),
             ),
         )
@@ -239,6 +250,102 @@ extension Passage.Views {
             at: path,
             withError: error,
             withDefaultMessage: "An unknown error occurred during password reset.",
+        )
+    }
+
+}
+
+// MARK: - Magic Link Request View Implementation
+
+extension Passage.Views {
+
+    func renderMagicLinkRequestView() async throws -> View {
+        guard let view = config.magicLinkRequest else {
+            throw Abort(.notFound)
+        }
+        let params = try request.query.decode(MagicLinkRequestViewContext.self)
+        return try await request.view.render(
+            view.template,
+            Context(
+                theme: view.theme.resolve(for: .light),
+                params: params.copyWith(
+                    byEmail: true
+                )
+            )
+        )
+    }
+
+    func handleMagicLinkRequestSuccess(
+        of view: Passage.Configuration.Views.MagicLinkRequestView,
+        at path: [PathComponent],
+        email: String
+    ) -> Response {
+        return redirect(
+            view: view,
+            at: path,
+            withParams: ["identifier": email],
+            withSuccessMessage: "A sign-in link has been sent to \(email)"
+        )
+    }
+
+    func handleMagicLinkRequestFailure(
+        of view: Passage.Configuration.Views.MagicLinkRequestView,
+        at path: [PathComponent],
+        with error: any Error
+    ) -> Response {
+        return redirect(
+            view: view,
+            at: path,
+            withError: error,
+            withDefaultMessage: "Failed to send magic link. Please try again."
+        )
+    }
+
+}
+
+// MARK: - Magic Link Verify View Implementation
+
+extension Passage.Views {
+
+    func renderMagicLinkVerifySuccess(
+        of view: Passage.Configuration.Views.MagicLinkVerifyView,
+        at path: [PathComponent],
+    ) async throws -> View {
+        guard let view = config.magicLinkVerify else {
+            throw Abort(.notFound)
+        }
+        let params = try request.query.decode(MagicLinkVerifyViewContext.self)
+        return try await request.view.render(
+            view.template,
+            Context(
+                theme: view.theme.resolve(for: .light),
+                params: params.copyWith(
+                    success: "You have successfully signed in with your magic link.",
+                    redirectUrl: view.redirect.onSuccess,
+                )
+            )
+        )
+    }
+
+    func renderMagicLinkVerifyFailure(
+        of view: Passage.Configuration.Views.MagicLinkVerifyView,
+        at path: [PathComponent],
+        with error: any Error,
+        loginPath: [PathComponent]
+    ) async throws -> View {
+        guard let view = config.magicLinkVerify else {
+            throw Abort(.notFound)
+        }
+        let params = try request.query.decode(MagicLinkVerifyViewContext.self)
+        return try await request.view.render(
+            view.template,
+            Context(
+                theme: view.theme.resolve(for: .light),
+                params: params.copyWith(
+                    error: (error as? AuthenticationError)?.localizedDescription ?? "Failed to verify magic link. Please try again.",
+                    loginLink: "/\(loginPath.string)",
+                )
+            )
         )
     }
 
