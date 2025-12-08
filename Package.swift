@@ -8,6 +8,7 @@ let package = Package(
     ],
     products: [
         .library(name: "Passage", targets: ["Passage"]),
+        .library(name: "PassageOnlyForTest", targets: ["PassageOnlyForTest"]),
     ],
     dependencies: [
         .package(url: "https://github.com/vapor/vapor.git", from: "4.119.2"),
