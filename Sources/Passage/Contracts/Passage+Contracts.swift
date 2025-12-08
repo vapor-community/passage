@@ -7,8 +7,10 @@ public extension Passage {
         let logoutForm: any LogoutForm.Type
         let registerForm: any RegisterForm.Type
         let refreshTokenForm: any RefreshTokenForm.Type
-        let emailVerificationForm: any EmailVerificationForm.Type
-        let phoneVerificationForm: any PhoneVerificationForm.Type
+        let emailVerificationRequestForm: any EmailVerificationRequestForm.Type
+        let emailVerificationConfirmForm: any EmailVerificationConfirmForm.Type
+        let phoneVerificationRequestForm: any PhoneVerificationRequestForm.Type
+        let phoneVerificationConfirmForm: any PhoneVerificationConfirmForm.Type
         let emailPasswordResetRequestForm: any EmailPasswordResetRequestForm.Type
         let emailPasswordResetVerifyForm: any EmailPasswordResetVerifyForm.Type
         let emailPasswordResetResendForm: any EmailPasswordResetResendForm.Type
@@ -24,8 +26,10 @@ public extension Passage {
             logoutForm: (any LogoutForm.Type)? = nil,
             registerForm: (any RegisterForm.Type)? = nil,
             refreshTokenForm: (any RefreshTokenForm.Type)? = nil,
-            emailVerificationForm: (any EmailVerificationForm.Type)? = nil,
-            phoneVerificationForm: (any PhoneVerificationForm.Type)? = nil,
+            emailVerificationRequestForm: (any EmailVerificationRequestForm.Type)? = nil,
+            emailVerificationConfirmForm: (any EmailVerificationConfirmForm.Type)? = nil,
+            phoneVerificationRequestForm: (any PhoneVerificationRequestForm.Type)? = nil,
+            phoneVerificationConfirmForm: (any PhoneVerificationConfirmForm.Type)? = nil,
             emailPasswordResetRequestForm: (any EmailPasswordResetRequestForm.Type)? = nil,
             emailPasswordResetVerifyForm: (any EmailPasswordResetVerifyForm.Type)? = nil,
             emailPasswordResetResendForm: (any EmailPasswordResetResendForm.Type)? = nil,
@@ -41,8 +45,10 @@ public extension Passage {
             self.logoutForm = logoutForm ?? DefaultLogoutForm.self
             self.registerForm = registerForm ?? DefaultRegisterForm.self
             self.refreshTokenForm = refreshTokenForm ?? DefaultRefreshTokenForm.self
-            self.emailVerificationForm = emailVerificationForm ?? DefaultEmailVerificationForm.self
-            self.phoneVerificationForm = phoneVerificationForm ?? DefaultPhoneVerificationForm.self
+            self.emailVerificationRequestForm = emailVerificationRequestForm ?? DefaultEmailVerificationRequestForm.self
+            self.emailVerificationConfirmForm = emailVerificationConfirmForm ?? DefaultEmailVerificationConfirmForm.self
+            self.phoneVerificationRequestForm = phoneVerificationRequestForm ?? DefaultPhoneVerificationRequestForm.self
+            self.phoneVerificationConfirmForm = phoneVerificationConfirmForm ?? DefaultPhoneVerificationConfirmForm.self
             self.emailPasswordResetRequestForm = emailPasswordResetRequestForm ?? DefaultEmailPasswordResetRequestForm.self
             self.emailPasswordResetVerifyForm = emailPasswordResetVerifyForm ?? DefaultEmailPasswordResetVerifyForm.self
             self.emailPasswordResetResendForm = emailPasswordResetResendForm ?? DefaultEmailPasswordResetResendForm.self

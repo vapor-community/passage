@@ -24,9 +24,11 @@ extension Passage.Verification {
 extension Passage.Verification.PhoneRouteCollection {
 
     func sendCode(_ req: Request) async throws -> HTTPStatus {
-        let accessToken = try await req.jwt.verify(as: AccessToken.self)
+        let form = try req.decodeContentAsFormOfType(req.contracts.phoneVerificationRequestForm)
 
-        guard let user = try await req.store.users.find(byId: accessToken.subject.value) else {
+        guard let user = try await req.store.users.find(
+            byIdentifier: .phone(form.phone)
+        ) else {
             throw AuthenticationError.userNotFound
         }
 
@@ -47,40 +49,30 @@ extension Passage.Verification.PhoneRouteCollection {
 extension Passage.Verification.PhoneRouteCollection {
 
     func verify(_ req: Request) async throws -> HTTPStatus {
-        let accessToken = try await req.jwt.verify(as: AccessToken.self)
-
-        let form = try req.decodeContentAsFormOfType(req.contracts.phoneVerificationForm)
-
-        guard let user = try await req.store.users.find(byId: accessToken.subject.value) else {
-            throw AuthenticationError.userNotFound
-        }
-
-        guard let phone = user.phone else {
-            throw AuthenticationError.phoneNotSet
-        }
+        let form = try req.decodeQueryAsFormOfType(req.contracts.phoneVerificationConfirmForm)
 
         let hash = req.random.hashOpaqueToken(token: form.code)
 
-        guard let storedCode = try await req.store.verificationCodes.findPhoneCode(
-            forPhone: phone,
+        guard let code = try await req.store.verificationCodes.findPhoneCode(
+            forPhone: form.phone,
             codeHash: hash
         ) else {
             throw AuthenticationError.invalidVerificationCode
         }
-
-        guard storedCode.isValid(maxAttempts: config.maxAttempts) else {
+        
+        guard code.isValid(maxAttempts: config.maxAttempts) else {
             throw AuthenticationError.verificationCodeExpiredOrMaxAttempts
         }
-
+        
         // Mark as verified
-        try await req.store.users.markPhoneVerified(for: user)
-
+        try await req.store.users.markPhoneVerified(for: code.user)
+        
         // Invalidate used code
-        try await req.store.verificationCodes.invalidatePhoneCodes(forPhone: phone)
+        try await req.store.verificationCodes.invalidatePhoneCodes(forPhone: code.phone)
 
         // Optionally send confirmation
         if let delivery = req.phoneDelivery {
-            try? await delivery.sendVerificationConfirmation(to: phone, user: user)
+            try? await delivery.sendVerificationConfirmation(to: code.phone, user: code.user)
         }
 
         return .ok

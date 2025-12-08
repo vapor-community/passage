@@ -136,7 +136,8 @@ extension Passage.Verification {
         let verificationURL = request.configuration.emailVerificationURL
             .appending(
                 queryItems: [
-                    .init(name: "code", value: code)
+                    .init(name: "code", value: code),
+                    .init(name: "email", value: email),
                 ]
             )
 

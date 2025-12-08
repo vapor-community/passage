@@ -24,9 +24,11 @@ extension Passage.Verification {
 extension Passage.Verification.EmailRouteCollection {
 
     func send(_ req: Request) async throws -> HTTPStatus {
-        let accessToken = try await req.jwt.verify(as: AccessToken.self)
+        let form = try req.decodeContentAsFormOfType(req.contracts.emailVerificationRequestForm)
 
-        guard let user = try await req.store.users.find(byId: accessToken.subject.value) else {
+        guard let user = try await req.store.users.find(
+            byIdentifier: .email(form.email)
+        ) else {
             throw AuthenticationError.userNotFound
         }
 
@@ -47,39 +49,30 @@ extension Passage.Verification.EmailRouteCollection {
 extension Passage.Verification.EmailRouteCollection {
 
     func verify(_ req: Request) async throws -> HTTPStatus {
-        let accessToken = try await req.jwt.verify(as: AccessToken.self)
-        let form = try req.decodeQueryAsFormOfType(req.contracts.emailVerificationForm)
-
-        guard let user = try await req.store.users.find(byId: accessToken.subject.value) else {
-            throw AuthenticationError.userNotFound
-        }
-
-        guard let email = user.email else {
-            throw AuthenticationError.emailNotSet
-        }
+        let form = try req.decodeQueryAsFormOfType(req.contracts.emailVerificationConfirmForm)
 
         let hash = req.random.hashOpaqueToken(token: form.code)
 
-        guard let storedCode = try await req.store.verificationCodes.findEmailCode(
-            forEmail: email,
+        guard let code = try await req.store.verificationCodes.findEmailCode(
+            forEmail: form.email,
             codeHash: hash
         ) else {
             throw AuthenticationError.invalidVerificationCode
         }
 
-        guard storedCode.isValid(maxAttempts: config.maxAttempts) else {
+        guard code.isValid(maxAttempts: config.maxAttempts) else {
             throw AuthenticationError.verificationCodeExpiredOrMaxAttempts
         }
 
         // Mark as verified
-        try await req.store.users.markEmailVerified(for: user)
+        try await req.store.users.markEmailVerified(for: code.user)
 
         // Invalidate used code
-        try await req.store.verificationCodes.invalidateEmailCodes(forEmail: email)
+        try await req.store.verificationCodes.invalidateEmailCodes(forEmail: code.email)
 
         // Optionally send confirmation
         if let delivery = req.emailDelivery {
-            try? await delivery.sendEmailVerificationConfirmation(to: email, user: user)
+            try? await delivery.sendEmailVerificationConfirmation(to: code.email, user: code.user)
         }
 
         return .ok

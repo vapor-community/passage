@@ -137,32 +137,62 @@ struct DefaultFormsTests {
         #expect(form is Passage.DefaultLogoutForm)
     }
 
-    // MARK: - DefaultEmailVerificationForm Tests
+    // MARK: - DefaultEmailVerificationRequestForm Tests
 
-    @Test("DefaultEmailVerificationForm initialization")
+    @Test("DefaultEmailVerificationRequestForm initialization")
+    func defaultEmailVerificationRequestFormInitialization() {
+        let form = Passage.DefaultEmailVerificationRequestForm(email: "test@example.com")
+        #expect(form.email == "test@example.com")
+    }
+
+    @Test("DefaultEmailVerificationRequestForm conforms to EmailVerificationRequestForm")
+    func defaultEmailVerificationRequestFormConformsToProtocol() {
+        let form: any EmailVerificationRequestForm = Passage.DefaultEmailVerificationRequestForm(email: "test@example.com")
+        #expect(form is Passage.DefaultEmailVerificationRequestForm)
+    }
+
+    // MARK: - DefaultEmailVerificationConfirmForm Tests
+
+    @Test("DefaultEmailVerificationConfirmForm initialization")
     func defaultEmailVerificationFormInitialization() {
-        let form = Passage.DefaultEmailVerificationForm(code: "123456")
+        let form = Passage.DefaultEmailVerificationConfirmForm(code: "123456", email: "test@example.com")
         #expect(form.code == "123456")
+        #expect(form.email == "test@example.com")
     }
 
-    @Test("DefaultEmailVerificationForm conforms to EmailVerificationForm")
+    @Test("DefaultEmailVerificationConfirmForm conforms to EmailVerificationConfirmForm")
     func defaultEmailVerificationFormConformsToEmailVerificationForm() {
-        let form: any EmailVerificationForm = Passage.DefaultEmailVerificationForm(code: "123456")
-        #expect(form is Passage.DefaultEmailVerificationForm)
+        let form = Passage.DefaultEmailVerificationConfirmForm(code: "123456", email: "test@example.com")
+        #expect(form is EmailVerificationConfirmForm)
     }
 
-    // MARK: - DefaultPhoneVerificationForm Tests
+    // MARK: - DefaultPhoneVerificationRequestForm Tests
 
-    @Test("DefaultPhoneVerificationForm initialization")
+    @Test("DefaultPhoneVerificationRequestForm initialization")
+    func defaultPhoneVerificationRequestFormInitialization() {
+        let form = Passage.DefaultPhoneVerificationRequestForm(phone: "+1234567890")
+        #expect(form.phone == "+1234567890")
+    }
+
+    @Test("DefaultPhoneVerificationRequestForm conforms to PhoneVerificationRequestForm")
+    func defaultPhoneVerificationRequestFormConformsToProtocol() {
+        let form: any PhoneVerificationRequestForm = Passage.DefaultPhoneVerificationRequestForm(phone: "+1234567890")
+        #expect(form is Passage.DefaultPhoneVerificationRequestForm)
+    }
+
+    // MARK: - DefaultPhoneVerificationConfirmForm Tests
+
+    @Test("DefaultPhoneVerificationConfirmForm initialization")
     func defaultPhoneVerificationFormInitialization() {
-        let form = Passage.DefaultPhoneVerificationForm(code: "123456")
+        let form = Passage.DefaultPhoneVerificationConfirmForm(code: "123456", phone: "+1234567890")
         #expect(form.code == "123456")
+        #expect(form.phone == "+1234567890")
     }
 
-    @Test("DefaultPhoneVerificationForm conforms to PhoneVerificationForm")
+    @Test("DefaultPhoneVerificationConfirmForm conforms to PhoneVerificationConfirmForm")
     func defaultPhoneVerificationFormConformsToPhoneVerificationForm() {
-        let form: any PhoneVerificationForm = Passage.DefaultPhoneVerificationForm(code: "123456")
-        #expect(form is Passage.DefaultPhoneVerificationForm)
+        let form = Passage.DefaultPhoneVerificationConfirmForm(code: "123456", phone: "+1234567890")
+        #expect(form is PhoneVerificationConfirmForm)
     }
 
     // MARK: - DefaultEmailPasswordResetRequestForm Tests
@@ -280,12 +310,14 @@ struct DefaultFormsTests {
             Passage.DefaultRegisterForm(email: "test@example.com", phone: nil, username: nil, password: "password123", confirmPassword: "password123"),
             Passage.DefaultRefreshTokenForm(refreshToken: "token"),
             Passage.DefaultLogoutForm(),
-            Passage.DefaultEmailVerificationForm(code: "123456"),
-            Passage.DefaultPhoneVerificationForm(code: "123456"),
+            Passage.DefaultEmailVerificationRequestForm(email: "test@example.com"),
+            Passage.DefaultEmailVerificationConfirmForm(code: "123456", email: "test@example.com"),
+            Passage.DefaultPhoneVerificationRequestForm(phone: "+1234567890"),
+            Passage.DefaultPhoneVerificationConfirmForm(code: "123456", phone: "+1234567890"),
             Passage.DefaultEmailPasswordResetRequestForm(email: "test@example.com"),
             Passage.DefaultPhonePasswordResetRequestForm(phone: "+1234567890")
         ]
 
-        #expect(forms.count == 8)
+        #expect(forms.count == 10)
     }
 }

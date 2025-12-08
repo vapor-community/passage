@@ -16,7 +16,11 @@ extension Passage.Identity {
             grouped.post(routes.login.path, use: self.login)
             grouped.post(routes.refreshToken.path, use: self.refreshToken)
             grouped.post(routes.logout.path, use: self.logout)
-            grouped.get(routes.currentUser.path, use: self.currentUser)
+            if routes.currentUser.shouldBypassGroup {
+                builder.get(routes.currentUser.path, use: self.currentUser)
+            } else {
+                grouped.get(routes.currentUser.path, use: self.currentUser)
+            }
         }
 
     }

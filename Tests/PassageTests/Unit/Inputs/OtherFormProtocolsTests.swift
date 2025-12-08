@@ -45,39 +45,83 @@ struct OtherFormProtocolsTests {
         #expect(form is MockLogoutForm)
     }
 
-    // MARK: - VerificationForm Tests
+    // MARK: - VerificationRequestForm Tests
 
-    struct MockEmailVerificationForm: EmailVerificationForm {
+    struct MockEmailVerificationRequestForm: EmailVerificationRequestForm {
+        static func validations(_ validations: inout Validations) {
+            validations.add("email", as: String.self, is: .email)
+        }
+
+        let email: String
+    }
+
+    struct MockPhoneVerificationRequestForm: PhoneVerificationRequestForm {
+        static func validations(_ validations: inout Validations) {
+            validations.add("phone", as: String.self, is: .count(6...))
+        }
+
+        let phone: String
+    }
+
+    @Test("EmailVerificationRequestForm conforms to Form")
+    func emailVerificationRequestFormConformsToForm() {
+        let form: any Form = MockEmailVerificationRequestForm(email: "test@example.com")
+        #expect(form is MockEmailVerificationRequestForm)
+    }
+
+    @Test("PhoneVerificationRequestForm conforms to Form")
+    func phoneVerificationRequestFormConformsToForm() {
+        let form: any Form = MockPhoneVerificationRequestForm(phone: "+1234567890")
+        #expect(form is MockPhoneVerificationRequestForm)
+    }
+
+    @Test("EmailVerificationRequestForm has email property")
+    func emailVerificationRequestFormHasEmail() {
+        let form = MockEmailVerificationRequestForm(email: "test@example.com")
+        #expect(form.email == "test@example.com")
+    }
+
+    @Test("PhoneVerificationRequestForm has phone property")
+    func phoneVerificationRequestFormHasPhone() {
+        let form = MockPhoneVerificationRequestForm(phone: "+1234567890")
+        #expect(form.phone == "+1234567890")
+    }
+
+    // MARK: - VerificationConfirmForm Tests
+
+    struct MockEmailVerificationConfirmForm: EmailVerificationConfirmForm {
         static func validations(_ validations: inout Validations) {
             validations.add("code", as: String.self, is: .count(6...20))
         }
 
         let code: String
+        let email: String
     }
 
-    struct MockPhoneVerificationForm: PhoneVerificationForm {
+    struct MockPhoneVerificationConfirmForm: PhoneVerificationConfirmForm {
         static func validations(_ validations: inout Validations) {
             validations.add("code", as: String.self, is: .count(6...20))
         }
 
         let code: String
+        let phone: String
     }
 
-    @Test("EmailVerificationForm conforms to VerificationForm")
-    func emailVerificationFormConformsToVerificationForm() {
-        let form: any VerificationForm = MockEmailVerificationForm(code: "123456")
-        #expect(form is MockEmailVerificationForm)
+    @Test("EmailVerificationConfirmForm conforms to VerificationConfirmForm")
+    func emailVerificationConfirmFormConformsToVerificationConfirmForm() {
+        let form: any VerificationConfirmForm = MockEmailVerificationConfirmForm(code: "123456", email: "test@example.com")
+        #expect(form is MockEmailVerificationConfirmForm)
     }
 
-    @Test("PhoneVerificationForm conforms to VerificationForm")
-    func phoneVerificationFormConformsToVerificationForm() {
-        let form: any VerificationForm = MockPhoneVerificationForm(code: "123456")
-        #expect(form is MockPhoneVerificationForm)
+    @Test("PhoneVerificationConfirmForm conforms to VerificationConfirmForm")
+    func phoneVerificationConfirmFormConformsToVerificationConfirmForm() {
+        let form: any VerificationConfirmForm = MockPhoneVerificationConfirmForm(code: "123456", phone: "+1234567890")
+        #expect(form is MockPhoneVerificationConfirmForm)
     }
 
-    @Test("VerificationForm has code property")
-    func verificationFormHasCode() {
-        let form = MockEmailVerificationForm(code: "ABC123")
+    @Test("VerificationConfirmForm has code property")
+    func verificationConfirmFormHasCode() {
+        let form = MockEmailVerificationConfirmForm(code: "ABC123", email: "test@example.com")
         #expect(form.code == "ABC123")
     }
 
@@ -198,12 +242,15 @@ struct OtherFormProtocolsTests {
         let forms: [any Form] = [
             MockRefreshTokenForm(refreshToken: "token"),
             MockLogoutForm(),
-            MockEmailVerificationForm(code: "123456"),
+            MockEmailVerificationRequestForm(email: "test@example.com"),
+            MockPhoneVerificationRequestForm(phone: "+1234567890"),
+            MockEmailVerificationConfirmForm(code: "123456", email: "test@example.com"),
+            MockPhoneVerificationConfirmForm(code: "123456", phone: "+1234567890"),
             MockEmailPasswordResetRequestForm(email: "test@example.com"),
             MockPhonePasswordResetRequestForm(phone: "+1234567890")
         ]
 
-        #expect(forms.count == 5)
+        #expect(forms.count == 8)
         for form in forms {
             #expect(form is Content)
             #expect(form is Validatable)
