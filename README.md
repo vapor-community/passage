@@ -1,6 +1,6 @@
 # Passage
 
-A comprehensive identity management and authentication framework for Vapor applications built with Swift. Passage provides secure, production-ready authentication with minimal configuration while remaining highly extensible through protocol-based architecture.
+A comprehensive identity management and authentication framework for Vapor applications built with Swift. Passage provides secure authentication with minimal configuration while remaining highly extensible through protocol-based architecture. **Not yet production-ready.**
 
 ## Status: Developer Preview
 
@@ -37,7 +37,11 @@ Then add `"Passage"` to your target dependencies:
 
 ```swift                
 .product(name: "Passage", package: "passage"),
-// Add this only if you want to use the in-memory store for testing
+```
+
+Add `PassageOnlyForTest` **only** if you want to use the in-memory store for testing:
+
+```swift
 .product(name: "PassageOnlyForTest", package: "passage"),
 ```
 
@@ -117,7 +121,8 @@ Passage is designed for flexibility through:
 
 The `Store` protocol is the **only required service** you must provide. It handles all persistence for users, identifiers, tokens, and verification codes.
 
-**Recommended Implementation**: Use the [passage-fluent](https://github.com/rozd/passage-fluent) package which provides a complete Fluent-based storage implementation with migrations for PostgreSQL, MySQL, and SQLite.
+**Recommended Implementation**: Use the [passage-fluent](https://github.com/rozd/passage-fluent) package, which provides a complete Fluent-based storage implementation with migrations for PostgreSQL, MySQL, and SQLite.
+
 **Testing Implementation**: The `PassageOnlyForTest` module provides an in-memory store for testing purposes.
 
 ```swift
@@ -136,7 +141,7 @@ Or implement your own by conforming to `Passage.Store`, which composes four sub-
 
 The `EmailDelivery` protocol handles sending verification codes and password reset emails. Implement this to enable email-based features.
 
-**Recommended Implementation**: Use the [passage-mailgun](https://github.com/rozd/passage-mailgun) package for Mailgun integration:
+**Recommended Implementation**: Use the [passage-mailgun](https://github.com/rozd/passage-mailgun) package for Mailgun integration.
 
 ```swift
 import PassageMailgun
@@ -176,7 +181,7 @@ struct TwilioPhoneDelivery: Passage.PhoneDelivery {
 
 The `FederatedLoginService` protocol enables OAuth-based authentication with providers like Google, GitHub, Facebook, etc.
 
-**Recommended Implementation**: Use the [passage-imperial](https://github.com/rozd/passage-imperial) package which integrates with the Imperial OAuth library:
+**Recommended Implementation**: Use the [passage-imperial](https://github.com/rozd/passage-imperial) package, which integrates with the Imperial OAuth library.
 
 ```swift
 import PassageImperial
