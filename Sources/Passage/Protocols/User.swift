@@ -2,7 +2,7 @@ import Vapor
 
 // MARK: - User
 
-public protocol User: Authenticatable, Sendable {
+public protocol User: Authenticatable, SessionAuthenticatable, Sendable {
     associatedtype Id: CustomStringConvertible, Codable, Hashable, Sendable
 
     var id: Id? { get }

@@ -13,3 +13,22 @@ public struct PassageContext: Sendable {
         request.auth.has(request.store.users.userType)
     }
 }
+
+// MARK: - Vapor Authentication
+
+extension PassageContext {
+
+    func login(_ user: any User) {
+        request.auth.login(user)
+        if request.configuration.sessions.enabled {
+            request.session.authenticate(user)
+        }
+    }
+
+    func logout() {
+        request.auth.logout(request.store.users.userType)
+        if request.configuration.sessions.enabled {
+            request.session.unauthenticate(request.store.users.userType)
+        }
+    }
+}

@@ -5,8 +5,8 @@ import JWTKit
 @testable import Passage
 @testable import PassageOnlyForTest
 
-@Suite("PassageAuthenticator Integration Tests", .tags(.integration))
-struct PassageAuthenticatorIntegrationTests {
+@Suite("PassageBearerAuthenticator Integration Tests", .tags(.integration))
+struct PassageBearerAuthenticatorIntegrationTests {
 
     // MARK: - Configuration Helper
 
@@ -62,8 +62,8 @@ struct PassageAuthenticatorIntegrationTests {
             configuration: configuration
         )
 
-        // Register test route with PassageAuthenticator middleware
-        let protected = app.grouped(PassageAuthenticator())
+        // Register test route with PassageBearerAuthenticator middleware
+        let protected = app.grouped(PassageBearerAuthenticator())
         protected.get("test-auth") { req -> String in
             // Return the authenticated user's ID if available
             if let user = req.auth.get(Passage.OnlyForTest.InMemoryUser.self) {

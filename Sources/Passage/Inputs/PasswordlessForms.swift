@@ -31,7 +31,7 @@ extension Passage {
 
     struct DefaultEmailMagicLinkVerifyForm: EmailMagicLinkVerifyForm {
         static func validations(_ validations: inout Validations) {
-            validations.add("token", as: String.self, is: .count(32...64))
+            validations.add("token", as: String.self, required: true)
         }
 
         let token: String

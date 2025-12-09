@@ -15,11 +15,20 @@ extension Passage.Identity {
             grouped.post(routes.register.path, use: self.register)
             grouped.post(routes.login.path, use: self.login)
             grouped.post(routes.refreshToken.path, use: self.refreshToken)
-            grouped.post(routes.logout.path, use: self.logout)
+            grouped
+                .grouped(PassageSessionAuthenticator())
+                .grouped(PassageBearerAuthenticator())
+                .post(routes.logout.path, use: self.logout)
             if routes.currentUser.shouldBypassGroup {
-                builder.get(routes.currentUser.path, use: self.currentUser)
+                builder
+                    .grouped(PassageSessionAuthenticator())
+                    .grouped(PassageBearerAuthenticator())
+                    .get(routes.currentUser.path, use: self.currentUser)
             } else {
-                grouped.get(routes.currentUser.path, use: self.currentUser)
+                grouped
+                    .grouped(PassageSessionAuthenticator())
+                    .grouped(PassageBearerAuthenticator())
+                    .get(routes.currentUser.path, use: self.currentUser)
             }
         }
 
@@ -111,15 +120,7 @@ extension Passage.Identity.RouteCollection {
     fileprivate func logout(_ req: Request) async throws -> HTTPStatus {
         let _ = try req.decodeContentAsFormOfType(req.contracts.logoutForm)
 
-        guard let user = req.auth.get(req.store.users.userType) else {
-            return .ok
-        }
-
-        defer {
-            req.auth.logout(req.store.users.userType)
-        }
-
-        try await req.identity.logout(user: user)
+        try await req.identity.logout()
 
         return .ok
     }
@@ -131,9 +132,7 @@ extension Passage.Identity.RouteCollection {
 extension Passage.Identity.RouteCollection {
 
     fileprivate func currentUser(_ req: Request) async throws -> AuthUser.User {
-        let accessToken = try await req.jwt.verify(as: AccessToken.self)
-
-        return try await req.identity.currentUser(accessToken: accessToken)
+        return try req.identity.currentUser()
     }
 
 }

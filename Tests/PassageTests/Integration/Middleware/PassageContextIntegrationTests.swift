@@ -61,7 +61,7 @@ struct PassageContextIntegrationTests {
         )
 
         // Route that tests request.passage.hasUser
-        let authenticated = app.grouped(PassageAuthenticator())
+        let authenticated = app.grouped(PassageBearerAuthenticator())
         authenticated.get("test-has-user") { req -> String in
             return req.passage.hasUser ? "has-user:true" : "has-user:false"
         }

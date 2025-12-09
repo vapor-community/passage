@@ -18,6 +18,13 @@ struct UserProtocolTests {
         var isAnonymous: Bool
         var isEmailVerified: Bool
         var isPhoneVerified: Bool
+
+        var sessionID: String {
+            guard let id = id else {
+                fatalError("MockUser must have an ID for session authentication")
+            }
+            return id.uuidString
+        }
     }
 
     // MARK: - Protocol Extension Tests
@@ -253,5 +260,54 @@ struct UserProtocolTests {
         let idDescription = user.id?.description
         #expect(idDescription != nil)
         #expect(idDescription == userId.uuidString)
+    }
+
+    // MARK: - SessionAuthenticatable Conformance Tests
+
+    @Test("User protocol conforms to SessionAuthenticatable")
+    func userProtocolConformsToSessionAuthenticatable() {
+        let user = MockUser(
+            id: UUID(),
+            email: nil,
+            phone: nil,
+            username: nil,
+            passwordHash: nil,
+            isAnonymous: false,
+            isEmailVerified: false,
+            isPhoneVerified: false
+        )
+        #expect(user is any SessionAuthenticatable)
+    }
+
+    @Test("User sessionID returns string representation of ID")
+    func sessionIDReturnsStringId() {
+        let userId = UUID()
+        let user = MockUser(
+            id: userId,
+            email: nil,
+            phone: nil,
+            username: nil,
+            passwordHash: nil,
+            isAnonymous: false,
+            isEmailVerified: false,
+            isPhoneVerified: false
+        )
+
+        #expect(user.sessionID == userId.uuidString)
+    }
+
+    @Test("User conforms to Authenticatable")
+    func userProtocolConformsToAuthenticatable() {
+        let user = MockUser(
+            id: UUID(),
+            email: nil,
+            phone: nil,
+            username: nil,
+            passwordHash: nil,
+            isAnonymous: false,
+            isEmailVerified: false,
+            isPhoneVerified: false
+        )
+        #expect(user is any Authenticatable)
     }
 }

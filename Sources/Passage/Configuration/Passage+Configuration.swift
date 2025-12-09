@@ -7,6 +7,7 @@ extension Passage {
         let origin: URL
         let routes: Routes
         let tokens: Tokens
+        let sessions: Sessions
         let jwt: JWT
         let passwordless: Passwordless
         let verification: Verification
@@ -18,6 +19,7 @@ extension Passage {
             origin: URL,
             routes: Routes = .init(),
             tokens: Tokens = .init(),
+            sessions: Sessions = .init(),
             jwt: JWT? = nil,
             passwordless: Passwordless = .init(),
             verification: Verification = .init(),
@@ -28,6 +30,7 @@ extension Passage {
             self.origin = origin
             self.routes = routes
             self.tokens = tokens
+            self.sessions = sessions
             self.jwt = try jwt ?? JWT(jwks: try .fileFromEnvironment())
             self.passwordless = passwordless
             self.verification = verification

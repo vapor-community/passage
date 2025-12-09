@@ -163,6 +163,8 @@ extension Passage.Passwordless {
             throw AuthenticationError.magicLinkEmailNotFound
         }
 
+        request.passage.login(user)
+
         // Mark email as verified if not already
         if !user.isEmailVerified {
             try await store.users.markEmailVerified(for: user)

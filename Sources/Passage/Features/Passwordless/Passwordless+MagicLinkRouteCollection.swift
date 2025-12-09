@@ -65,7 +65,7 @@ extension Passage.Passwordless.MagicLinkEmailRouteCollection {
 
     func verify(_ req: Request) async throws -> Response {
         do {
-            let form = try req.query.decode(Passage.DefaultEmailMagicLinkVerifyForm.self)
+            let form = try req.decodeQueryAsFormOfType(req.contracts.emailMagicLinkVerifyForm)
             let authUser = try await req.passwordless.verifyEmailMagicLink(token: form.token)
 
             guard let view = req.configuration.views.magicLinkVerify else {

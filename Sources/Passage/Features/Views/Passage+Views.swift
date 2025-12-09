@@ -334,13 +334,25 @@ extension Passage.Views {
         guard let view = config.magicLinkVerify else {
             throw Abort(.notFound)
         }
+        let errorMessage: String
+        switch error {
+        case let error as ValidationsError:
+            errorMessage = "Validation error: \(error.description)"
+            break
+        case let error as AbortError:
+            errorMessage = error.reason
+            break
+        default:
+            errorMessage = "Failed to verify magic link. Please try again."
+            break
+        }
         let params = try request.query.decode(MagicLinkVerifyViewContext.self)
         return try await request.view.render(
             view.template,
             Context(
                 theme: view.theme.resolve(for: .light),
                 params: params.copyWith(
-                    error: error.localizedDescription ?? "Failed to verify magic link. Please try again.",
+                    error: errorMessage,
                     loginLink: "/\(loginPath.string)",
                 )
             )
@@ -378,12 +390,24 @@ fileprivate extension Passage.Views {
         withError error: Error,
         withDefaultMessage message: String = "An unexpected error occurred. Please try again.",
     ) -> Response {
+        let errorMessage: String
+        switch error {
+        case let error as ValidationsError:
+            errorMessage = "Validation error: \(error.description)"
+            break
+        case let error as AbortError:
+            errorMessage = error.reason
+            break
+        default:
+            errorMessage = message
+            break
+        }
         guard let location = view.redirect.onFailure else {
             return request.redirect(
                 to: buildRedirectLocation(
                     for: path,
                     params: params,
-                    error: error.localizedDescription ?? message
+                    error: errorMessage
                 )
             )
         }

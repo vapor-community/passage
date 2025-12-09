@@ -18,6 +18,13 @@ struct DeliveryProtocolsTests {
         var isAnonymous: Bool
         var isEmailVerified: Bool
         var isPhoneVerified: Bool
+
+        var sessionID: String {
+            guard let id = id else {
+                fatalError("MockUser must have an ID for session authentication")
+            }
+            return id.uuidString
+        }
     }
 
     // MARK: - EmailDelivery Protocol Tests

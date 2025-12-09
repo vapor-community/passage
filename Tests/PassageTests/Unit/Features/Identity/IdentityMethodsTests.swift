@@ -225,10 +225,13 @@ struct IdentityMethodsTests {
         let refreshToken = try await createRefreshToken(app: app, user: user)
 
         let request = Request(application: app, on: app.eventLoopGroup.next())
+        // Login the user to the request
+        request.auth.login(user)
+
         let identity = Passage.Identity(request: request)
 
         // Logout
-        try await identity.logout(user: user)
+        try await identity.logout()
 
         // Verify token is revoked by trying to use it
         let form = RefreshTokenFormImpl(refreshToken: refreshToken)
@@ -246,10 +249,26 @@ struct IdentityMethodsTests {
         let user = try await createTestUser(app: app, email: "user@example.com")
 
         let request = Request(application: app, on: app.eventLoopGroup.next())
+        // Login the user to the request
+        request.auth.login(user)
+
         let identity = Passage.Identity(request: request)
 
         // Should not throw
-        try await identity.logout(user: user)
+        try await identity.logout()
+    }
+
+    @Test("logout succeeds when no user is authenticated")
+    func logoutSucceedsWhenNotAuthenticated() async throws {
+        let app = try await Application.make(.testing)
+        defer { Task { try await app.asyncShutdown() } }
+        try await configure(app)
+
+        let request = Request(application: app, on: app.eventLoopGroup.next())
+        let identity = Passage.Identity(request: request)
+
+        // Should not throw - graceful handling of no user
+        try await identity.logout()
     }
 
     @Test("logout revokes multiple refresh tokens")
@@ -265,10 +284,13 @@ struct IdentityMethodsTests {
         let token2 = try await createRefreshToken(app: app, user: user)
 
         let request = Request(application: app, on: app.eventLoopGroup.next())
+        // Login the user to the request
+        request.auth.login(user)
+
         let identity = Passage.Identity(request: request)
 
         // Logout should revoke all tokens
-        try await identity.logout(user: user)
+        try await identity.logout()
 
         // Verify both tokens are revoked
         await #expect(throws: AuthenticationError.self) {
@@ -284,27 +306,21 @@ struct IdentityMethodsTests {
 
     // MARK: - currentUser() Tests
 
-    @Test("currentUser returns user data for valid access token")
-    func currentUserReturnsDataForValidToken() async throws {
+    @Test("currentUser returns user data when user is authenticated")
+    func currentUserReturnsDataForAuthenticatedUser() async throws {
         let app = try await Application.make(.testing)
         defer { Task { try await app.asyncShutdown() } }
         try await configure(app)
 
         let user = try await createTestUser(app: app, email: "user@example.com")
 
-        // Create an access token
-        let accessToken = AccessToken(
-            userId: try user.requiredIdAsString,
-            expiresAt: .now.addingTimeInterval(3600),
-            issuer: "test-issuer",
-            audience: nil,
-            scope: nil
-        )
-
         let request = Request(application: app, on: app.eventLoopGroup.next())
+        // Login the user to the request's auth
+        request.auth.login(user)
+
         let identity = Passage.Identity(request: request)
 
-        let userData = try await identity.currentUser(accessToken: accessToken)
+        let userData = try identity.currentUser()
 
         // Verify user data
         let expectedId = try user.requiredIdAsString
@@ -312,26 +328,18 @@ struct IdentityMethodsTests {
         #expect(userData.email == "user@example.com")
     }
 
-    @Test("currentUser throws error when user not found")
-    func currentUserThrowsWhenUserNotFound() async throws {
+    @Test("currentUser throws error when no user authenticated")
+    func currentUserThrowsWhenNotAuthenticated() async throws {
         let app = try await Application.make(.testing)
         defer { Task { try await app.asyncShutdown() } }
         try await configure(app)
 
-        // Create an access token for a non-existent user
-        let accessToken = AccessToken(
-            userId: "non-existent-user-id",
-            expiresAt: .now.addingTimeInterval(3600),
-            issuer: "test-issuer",
-            audience: nil,
-            scope: nil
-        )
-
         let request = Request(application: app, on: app.eventLoopGroup.next())
         let identity = Passage.Identity(request: request)
 
-        await #expect(throws: AuthenticationError.userNotFound) {
-            try await identity.currentUser(accessToken: accessToken)
+        // No user authenticated - should throw
+        #expect(throws: Error.self) {
+            _ = try identity.currentUser()
         }
     }
 
@@ -350,18 +358,13 @@ struct IdentityMethodsTests {
         let user = try await store.users.find(byCredential: credential)
         #expect(user != nil)
 
-        let accessToken = AccessToken(
-            userId: try user!.requiredIdAsString,
-            expiresAt: .now.addingTimeInterval(3600),
-            issuer: "test-issuer",
-            audience: nil,
-            scope: nil
-        )
-
         let request = Request(application: app, on: app.eventLoopGroup.next())
+        // Login the user to the request's auth
+        request.auth.login(user!)
+
         let identity = Passage.Identity(request: request)
 
-        let userData = try await identity.currentUser(accessToken: accessToken)
+        let userData = try identity.currentUser()
 
         #expect(userData.phone == "+1234567890")
     }

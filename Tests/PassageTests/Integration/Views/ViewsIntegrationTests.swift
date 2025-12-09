@@ -1317,7 +1317,7 @@ struct ViewsIntegrationTests {
                 #expect(renderer.templatePath == "magic-link-verify-minimalism")
 
                 let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkVerifyViewContext>
-                #expect(ctx?.params.error == "Failed to verify magic link. Please try again.")
+                #expect(ctx?.params.error?.starts(with: "Validation error:") == true)
             })
         }
     }
@@ -1340,7 +1340,7 @@ struct ViewsIntegrationTests {
                 #expect(renderer.templatePath == "magic-link-verify-neobrutalism")
 
                 let ctx = renderer.capturedContext as? Passage.Views.Context<Passage.Views.MagicLinkVerifyViewContext>
-                #expect(ctx?.params.error == "Failed to verify magic link. Please try again.")
+                #expect(ctx?.params.error?.starts(with: "Validation error:") == true)
             })
         }
     }

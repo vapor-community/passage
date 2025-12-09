@@ -14,6 +14,13 @@ extension Passage.OnlyForTest {
         public var isAnonymous: Bool
         public var isEmailVerified: Bool
         public var isPhoneVerified: Bool
+
+        public var sessionID: String {
+            guard let id = id else {
+                fatalError("User ID is missing")
+            }
+            return id
+        }
     }
 
     struct InMemoryRefreshToken: RefreshToken, @unchecked Sendable {

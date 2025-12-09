@@ -61,14 +61,14 @@ struct PassageGuardIntegrationTests {
         )
 
         // Route with default PassageGuard (401 unauthorized)
-        let guardedDefault = app.grouped(PassageAuthenticator()).grouped(PassageGuard())
+        let guardedDefault = app.grouped(PassageBearerAuthenticator()).grouped(PassageGuard())
         guardedDefault.get("guarded-default") { req -> String in
             return "access-granted"
         }
 
         // Route with custom error PassageGuard (403 forbidden)
         let customError = Abort(.forbidden, reason: "Custom forbidden message")
-        let guardedCustom = app.grouped(PassageAuthenticator()).grouped(PassageGuard(throwing: customError))
+        let guardedCustom = app.grouped(PassageBearerAuthenticator()).grouped(PassageGuard(throwing: customError))
         guardedCustom.get("guarded-custom") { req -> String in
             return "access-granted"
         }
