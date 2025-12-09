@@ -50,6 +50,17 @@
             border: 1.5px solid #(theme.colors.error);
         }
 
+        .success {
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 10px;
+            background-color: #(theme.colors.success);
+            color: #(theme.colors.onSuccess);
+            border: 1.5px solid #(theme.colors.success);
+        }
+
         .flex-column {
             display: flex;
             flex-direction: column;
@@ -250,6 +261,10 @@
         <div class="error">#(params.error)</div>
         #endif
 
+        #if(params.success):
+        <div class="success">#(params.success)</div>
+        #endif
+
         <!-- Email/Phone/Username Input -->
         #if(params.byEmail):
         <div class="flex-column">
@@ -265,8 +280,8 @@
                 placeholder="Enter your Email"
                 class="input"
                 type="email"
-                id="identifier"
-                name="identifier"
+                id="email"
+                name="email"
                 required
                 autocomplete="email"
             >
@@ -283,8 +298,8 @@
                 placeholder="Enter your Phone Number"
                 class="input"
                 type="tel"
-                id="identifier"
-                name="identifier"
+                id="phone"
+                name="phone"
                 required
                 autocomplete="tel"
             >
@@ -301,8 +316,8 @@
                 placeholder="Enter your Username"
                 class="input"
                 type="text"
-                id="identifier"
-                name="identifier"
+                id="username"
+                name="username"
                 required
                 autocomplete="username"
             >

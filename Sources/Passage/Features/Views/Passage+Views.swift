@@ -122,8 +122,6 @@ extension Passage.Views {
                     byEmail: view.identifier == .email,
                     byPhone: view.identifier == .phone,
                     byUsername: view.identifier == .username,
-                    withApple: true,
-                    withGoogle: true,
                     loginLink: "/test"
                 ),
             ),
@@ -342,7 +340,7 @@ extension Passage.Views {
             Context(
                 theme: view.theme.resolve(for: .light),
                 params: params.copyWith(
-                    error: (error as? AuthenticationError)?.localizedDescription ?? "Failed to verify magic link. Please try again.",
+                    error: error.localizedDescription ?? "Failed to verify magic link. Please try again.",
                     loginLink: "/\(loginPath.string)",
                 )
             )
@@ -385,7 +383,7 @@ fileprivate extension Passage.Views {
                 to: buildRedirectLocation(
                     for: path,
                     params: params,
-                    error: (error as? AuthenticationError)?.localizedDescription ?? message
+                    error: error.localizedDescription ?? message
                 )
             )
         }

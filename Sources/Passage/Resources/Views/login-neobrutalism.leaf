@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account</title>
+    <title>Sign In</title>
     <style>
         * {
             margin: 0;
@@ -51,6 +51,17 @@
             color: #(theme.colors.onError);
         }
 
+        .success {
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            border: 3px solid #000000;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 4px 4px 0 #000000;
+            background: #(theme.colors.success);
+            color: #(theme.colors.onSuccess);
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -87,6 +98,51 @@
         input::placeholder {
             color: #(theme.colors.onSurfaceVariant);
             opacity: 0.6;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            padding: 0;
+            box-shadow: none;
+            vertical-align: middle;
+        }
+
+        input[type="checkbox"]:focus {
+            transform: none;
+        }
+
+        .remember-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .remember-row > div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remember-row label {
+            margin-bottom: 0;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: none;
+            cursor: pointer;
+        }
+
+        .remember-row a {
+            font-size: 14px;
+            font-weight: 900;
+            color: #(theme.colors.primary);
+            text-decoration: none;
+        }
+
+        .remember-row a:hover {
+            text-decoration: underline;
         }
 
         button {
@@ -221,22 +277,32 @@
             .divider::after {
                 width: 38%;
             }
+
+            .remember-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Create Account</h1>
+        <h1>Sign In</h1>
 
         #if(params.error):
         <div class="error">#(params.error)</div>
+        #endif
+
+        #if(params.success):
+        <div class="success">#(params.success)</div>
         #endif
 
         <form method="POST">
             <!-- Email/Phone/Username Input -->
             #if(params.byEmail):
             <div class="form-group">
-                <label for="identifier">Email Address</label>
+                <label for="email">Email Address</label>
                 <input
                     type="email"
                     id="email"
@@ -248,7 +314,7 @@
             </div>
             #elseif(params.byPhone):
             <div class="form-group">
-                <label for="identifier">Phone Number</label>
+                <label for="phone">Phone Number</label>
                 <input
                     type="tel"
                     id="phone"
@@ -260,7 +326,7 @@
             </div>
             #elseif(params.byUsername):
             <div class="form-group">
-                <label for="identifier">Username</label>
+                <label for="username">Username</label>
                 <input
                     type="text"
                     id="username"
@@ -280,29 +346,36 @@
                     id="password"
                     name="password"
                     required
-                    placeholder="Enter a strong password"
-                    autocomplete="new-password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
                 >
             </div>
 
-            <!-- Confirm Password Input -->
-            <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
-                <input
-                    type="password"
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    required
-                    placeholder="Confirm your password"
-                    autocomplete="new-password"
-                >
+            <!-- Remember me and Forgot password -->
+            <div class="remember-row">
+                <div>
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+                #if(params.resetPasswordLink):
+                <a href="#(params.resetPasswordLink)">Forgot password?</a>
+                #endif
             </div>
 
-            <button type="submit">Create Account</button>
+            <button type="submit">Sign In</button>
         </form>
 
-        #if(params.loginLink):
-        <p class="text-center">Already have an account? <a href="#(params.loginLink)">Sign In</a></p>
+        #if(params.registerLink):
+        <p class="text-center">Don't have an account? <a href="#(params.registerLink)">Sign Up</a></p>
+        #endif
+
+        #if(params.magicLinkRequestLink):
+        <a href="#(params.magicLinkRequestLink)" class="oauth-btn" style="margin-top: 20px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" viewBox="0 0 24 24" height="20">
+                <path d="M20,8L12,13L4,8V6L12,11L20,6M20,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V6C22,4.89 21.1,4 20,4Z"></path>
+            </svg>
+            Sign In With Email
+        </a>
         #endif
 
         #if(params.withGoogle || params.withApple || params.withGitHub):
