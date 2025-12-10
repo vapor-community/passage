@@ -12,7 +12,7 @@ public struct PassageBearerAuthenticator: JWTAuthenticator {
         jwt: AccessToken,
         for request: Vapor.Request,
     ) async throws {
-        let user = try await request.identity.user(for: jwt)
+        let user = try await request.account.user(for: jwt)
         request.auth.login(user)
     }
 
@@ -40,7 +40,7 @@ public struct PassageSessionAuthenticator: AsyncAuthenticator {
 
         if let aID = request.session.authenticated(request.store.users.userType) {
             // try to find user with id from session
-            let user = try await request.identity.user(
+            let user = try await request.account.user(
                 withId: aID.description
             )
             request.auth.login(user)

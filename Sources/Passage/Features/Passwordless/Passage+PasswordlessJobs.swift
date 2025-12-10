@@ -17,16 +17,16 @@ extension Passage.Passwordless {
         typealias Payload = EmailMagicLinkPayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            let identity = context.application.passage
+            let passage = context.application.passage
 
-            guard let delivery = identity.emailDelivery else {
+            guard let delivery = passage.emailDelivery else {
                 context.logger.warning("Email delivery not configured, skipping magic link job")
                 return
             }
 
             // User may be nil for new users (when auto-create is enabled)
             let user: (any User)? = if let userId = payload.userId {
-                try await identity.store.users.find(byId: userId)
+                try await passage.store.users.find(byId: userId)
             } else {
                 nil
             }

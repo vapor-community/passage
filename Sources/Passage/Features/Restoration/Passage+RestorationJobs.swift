@@ -18,14 +18,14 @@ extension Passage.Restoration {
         typealias Payload = EmailPasswordResetCodePayload
 
         func dequeue(_ context: QueueContext, _ payload: Payload) async throws {
-            let identity = context.application.passage
+            let passage = context.application.passage
 
-            guard let delivery = identity.emailDelivery else {
+            guard let delivery = passage.emailDelivery else {
                 context.logger.warning("Email delivery not configured, skipping password reset job")
                 return
             }
 
-            guard let user = try await identity.store.users.find(byId: payload.userId) else {
+            guard let user = try await passage.store.users.find(byId: payload.userId) else {
                 context.logger.warning("User not found for password reset job: \(payload.userId)")
                 return
             }

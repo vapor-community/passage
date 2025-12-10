@@ -2,7 +2,7 @@ import Vapor
 
 extension Passage {
 
-    struct Identity: Sendable {
+    struct Account: Sendable {
         let request: Request
     }
 }
@@ -10,14 +10,14 @@ extension Passage {
 // MARK: - Request Extension
 
 extension Request {
-    var identity: Passage.Identity {
-        Passage.Identity(request: self)
+    var account: Passage.Account {
+        Passage.Account(request: self)
     }
 }
 
 // MARK: - Service Accessors
 
-extension Passage.Identity {
+extension Passage.Account {
     
     var store: Passage.Store {
         request.store
@@ -42,7 +42,7 @@ extension Passage.Identity {
 
 // MARK: - Register
 
-extension Passage.Identity {
+extension Passage.Account {
 
     func register(form: any RegisterForm) async throws {
         let hash = try await request.password.async.hash(form.password)
@@ -66,7 +66,7 @@ extension Passage.Identity {
 
 // MARK: - Login
 
-extension Passage.Identity {
+extension Passage.Account {
 
     func login(form: any LoginForm) async throws -> AuthUser {
         let identifier = try form.asIdentifier()
@@ -94,7 +94,7 @@ extension Passage.Identity {
 
 // MARK: - Logout
 
-extension Passage.Identity {
+extension Passage.Account {
 
     func logout() async throws {
         guard let user = try? request.passage.user else {
@@ -108,7 +108,7 @@ extension Passage.Identity {
 
 // MARK: - Current User
 
-extension Passage.Identity {
+extension Passage.Account {
 
     func user(for accessToken: AccessToken) async throws -> any User {
         let userId = accessToken.subject.value

@@ -1,6 +1,6 @@
 import Vapor
 
-extension Passage.Identity {
+extension Passage.Account {
 
     struct RouteCollection: Vapor.RouteCollection {
 
@@ -32,12 +32,12 @@ extension Passage.Identity {
 
 // MARK: - Register
 
-extension Passage.Identity.RouteCollection {
+extension Passage.Account.RouteCollection {
 
     fileprivate func register(_ req: Request) async throws -> Response {
         do {
             let form = try req.decodeContentAsFormOfType(req.contracts.registerForm)
-            try await req.identity.register(form: form)
+            try await req.account.register(form: form)
 
             guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.register else {
                 return try await HTTPStatus.ok.encodeResponse(for: req)
@@ -64,12 +64,12 @@ extension Passage.Identity.RouteCollection {
 
 // MARK: - Login
 
-extension Passage.Identity.RouteCollection {
+extension Passage.Account.RouteCollection {
 
     fileprivate func login(_ req: Request) async throws -> Response {
         do {
             let form = try req.decodeContentAsFormOfType(req.contracts.loginForm)
-            let user = try await req.identity.login(form: form)
+            let user = try await req.account.login(form: form)
 
             guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.login else {
                 return try await user.encodeResponse(for: req)
@@ -97,12 +97,12 @@ extension Passage.Identity.RouteCollection {
 
 // MARK: - Logout
 
-extension Passage.Identity.RouteCollection {
+extension Passage.Account.RouteCollection {
 
     fileprivate func logout(_ req: Request) async throws -> HTTPStatus {
         let _ = try req.decodeContentAsFormOfType(req.contracts.logoutForm)
 
-        try await req.identity.logout()
+        try await req.account.logout()
 
         return .ok
     }
@@ -111,10 +111,10 @@ extension Passage.Identity.RouteCollection {
 
 // MARK: - Current User
 
-extension Passage.Identity.RouteCollection {
+extension Passage.Account.RouteCollection {
 
     fileprivate func currentUser(_ req: Request) async throws -> AuthUser.User {
-        return try req.identity.currentUser()
+        return try req.account.currentUser()
     }
 
 }

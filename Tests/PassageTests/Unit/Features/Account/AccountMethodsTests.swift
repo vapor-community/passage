@@ -4,8 +4,8 @@ import JWTKit
 @testable import Passage
 @testable import PassageOnlyForTest
 
-@Suite("Identity Methods Unit Tests", .tags(.unit))
-struct IdentityMethodsTests {
+@Suite("Account Methods Unit Tests", .tags(.unit))
+struct AccountMethodsTests {
 
     // MARK: - Helper Methods
 
@@ -114,10 +114,10 @@ struct IdentityMethodsTests {
         // Login the user to the request
         request.auth.login(user)
 
-        let identity = Passage.Identity(request: request)
+        let account = Passage.Account(request: request)
 
         // Logout
-        try await identity.logout()
+        try await account.logout()
 
         // Verify token is revoked by trying to use it via the Tokens feature
         await #expect(throws: AuthenticationError.self) {
@@ -137,10 +137,10 @@ struct IdentityMethodsTests {
         // Login the user to the request
         request.auth.login(user)
 
-        let identity = Passage.Identity(request: request)
+        let account = Passage.Account(request: request)
 
         // Should not throw
-        try await identity.logout()
+        try await account.logout()
     }
 
     @Test("logout succeeds when no user is authenticated")
@@ -150,10 +150,10 @@ struct IdentityMethodsTests {
         try await configure(app)
 
         let request = Request(application: app, on: app.eventLoopGroup.next())
-        let identity = Passage.Identity(request: request)
+        let account = Passage.Account(request: request)
 
         // Should not throw - graceful handling of no user
-        try await identity.logout()
+        try await account.logout()
     }
 
     @Test("logout revokes multiple refresh tokens")
@@ -172,10 +172,10 @@ struct IdentityMethodsTests {
         // Login the user to the request
         request.auth.login(user)
 
-        let identity = Passage.Identity(request: request)
+        let account = Passage.Account(request: request)
 
         // Logout should revoke all tokens
-        try await identity.logout()
+        try await account.logout()
 
         // Verify both tokens are revoked via the Tokens feature
         await #expect(throws: AuthenticationError.self) {
@@ -201,9 +201,9 @@ struct IdentityMethodsTests {
         // Login the user to the request's auth
         request.auth.login(user)
 
-        let identity = Passage.Identity(request: request)
+        let account = Passage.Account(request: request)
 
-        let userData = try identity.currentUser()
+        let userData = try account.currentUser()
 
         // Verify user data
         let expectedId = try user.requiredIdAsString
@@ -218,11 +218,11 @@ struct IdentityMethodsTests {
         try await configure(app)
 
         let request = Request(application: app, on: app.eventLoopGroup.next())
-        let identity = Passage.Identity(request: request)
+        let account = Passage.Account(request: request)
 
         // No user authenticated - should throw
         #expect(throws: Error.self) {
-            _ = try identity.currentUser()
+            _ = try account.currentUser()
         }
     }
 
@@ -245,9 +245,9 @@ struct IdentityMethodsTests {
         // Login the user to the request's auth
         request.auth.login(user!)
 
-        let identity = Passage.Identity(request: request)
+        let account = Passage.Account(request: request)
 
-        let userData = try identity.currentUser()
+        let userData = try account.currentUser()
 
         #expect(userData.phone == "+1234567890")
     }
