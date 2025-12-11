@@ -126,6 +126,8 @@ extension Passage.Verification {
             try await sendPhoneCode(to: user)
         case .username:
             break // Username doesn't require verification
+        case .federated:
+            break // Federated accounts don't require verification
         }
     }
 

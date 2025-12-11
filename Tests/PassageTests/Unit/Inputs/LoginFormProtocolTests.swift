@@ -155,67 +155,6 @@ struct LoginFormProtocolTests {
         }
     }
 
-    // MARK: - asCredential() Tests
-
-    @Test("LoginForm asCredential returns email credential")
-    func asCredentialWithEmail() throws {
-        let form = MockLoginFormWithEmail(
-            email: "test@example.com",
-            phone: nil,
-            username: nil,
-            password: "password123"
-        )
-
-        let credential = try form.asCredential(hash: "hashed_password")
-        #expect(credential.identifier.kind == .email)
-        #expect(credential.identifier.value == "test@example.com")
-        #expect(credential.passwordHash == "hashed_password")
-    }
-
-    @Test("LoginForm asCredential returns phone credential")
-    func asCredentialWithPhone() throws {
-        let form = MockLoginFormWithPhone(
-            email: nil,
-            phone: "+1234567890",
-            username: nil,
-            password: "password123"
-        )
-
-        let credential = try form.asCredential(hash: "hashed_password")
-        #expect(credential.identifier.kind == .phone)
-        #expect(credential.identifier.value == "+1234567890")
-        #expect(credential.passwordHash == "hashed_password")
-    }
-
-    @Test("LoginForm asCredential returns username credential")
-    func asCredentialWithUsername() throws {
-        let form = MockLoginFormWithUsername(
-            email: nil,
-            phone: nil,
-            username: "johndoe",
-            password: "password123"
-        )
-
-        let credential = try form.asCredential(hash: "hashed_password")
-        #expect(credential.identifier.kind == .username)
-        #expect(credential.identifier.value == "johndoe")
-        #expect(credential.passwordHash == "hashed_password")
-    }
-
-    @Test("LoginForm asCredential throws when no identifier provided")
-    func asCredentialThrowsWhenNoIdentifier() {
-        let form = MockLoginFormWithEmail(
-            email: nil,
-            phone: nil,
-            username: nil,
-            password: "password123"
-        )
-
-        #expect(throws: AuthenticationError.identifierNotSpecified) {
-            _ = try form.asCredential(hash: "hashed_password")
-        }
-    }
-
     // MARK: - Protocol Conformance Tests
 
     @Test("LoginForm conforms to Form protocol")

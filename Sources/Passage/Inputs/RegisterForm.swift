@@ -14,13 +14,13 @@ public protocol RegisterForm: Form {
 
 extension RegisterForm {
 
-    func asCredential(hash: String) throws -> Credential {
+    func asIdentifier() throws -> Identifier {
         if let email = email {
-            return .email(email: email, passwordHash: hash)
+            return .email(email)
         } else if let phone = phone {
-            return .phone(phone: phone, passwordHash: hash)
+            return .phone(phone)
         } else if let username = username {
-            return .username(username: username, passwordHash: hash)
+            return .username(username)
         } else {
             throw AuthenticationError.identifierNotSpecified
         }

@@ -158,36 +158,34 @@ public extension Passage.OnlyForTest.InMemoryStore {
         private var users: [String: Passage.OnlyForTest.InMemoryUser] = [:]
         private var identifierIndex: [String: String] = [:] // identifier -> userId
 
-        public func create(with credential: Credential) async throws {
+        public func create(
+            identifier: Identifier,
+            with credential: Credential?
+        ) async throws -> any User {
             // Check for duplicate identifier
-            if identifierIndex[credential.identifier.value] != nil {
-                throw credential.identifier.errorWhenIdentifierAlreadyRegistered
+            if identifierIndex[identifier.value] != nil {
+                throw identifier.errorWhenIdentifierAlreadyRegistered
             }
 
             let userId = UUID().uuidString
             let user = Passage.OnlyForTest.InMemoryUser(
                 id: userId,
-                email: credential.identifier.kind == .email ? credential.identifier.value : nil,
-                phone: credential.identifier.kind == .phone ? credential.identifier.value : nil,
-                username: credential.identifier.kind == .username ? credential.identifier.value : nil,
-                passwordHash: credential.passwordHash,
+                email: identifier.kind == .email ? identifier.value : nil,
+                phone: identifier.kind == .phone ? identifier.value : nil,
+                username: identifier.kind == .username ? identifier.value : nil,
+                passwordHash: credential?.secret,
                 isAnonymous: false,
                 isEmailVerified: false,
                 isPhoneVerified: false
             )
             users[userId] = user
-            identifierIndex[credential.identifier.value] = userId
+            identifierIndex[identifier.value] = userId
+
+            return user
         }
 
         public func find(byId id: String) async throws -> (any User)? {
             return users[id]
-        }
-
-        public func find(byCredential credential: Credential) async throws -> (any User)? {
-            guard let userId = identifierIndex[credential.identifier.value] else {
-                return nil
-            }
-            return users[userId]
         }
 
         public func find(byIdentifier identifier: Identifier) async throws -> (any User)? {

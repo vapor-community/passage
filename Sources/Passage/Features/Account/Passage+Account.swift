@@ -47,19 +47,17 @@ extension Passage.Account {
     func register(form: any RegisterForm) async throws {
         let hash = try await request.password.async.hash(form.password)
 
-        let credential = try form.asCredential(hash: hash)
-
-        try await store.users.create(with: credential)
+        let identifier = try form.asIdentifier()
 
         // Send verification code after registration
         // Find the newly created user and send verification based on identifier type
-        if let user = try await store.users.find(byIdentifier: credential.identifier) {
-            // Fire-and-forget: don't fail registration if verification send fails
-            try? await verification.sendVerificationCode(
-                for: user,
-                identifierKind: credential.identifier.kind
-            )
-        }
+        let user = try await store.users.create(identifier: identifier, with: .password(hash))
+
+        // Fire-and-forget: don't fail registration if verification send fails
+        try? await verification.sendVerificationCode(
+            for: user,
+            identifierKind: identifier.kind
+        )
     }
 
 }

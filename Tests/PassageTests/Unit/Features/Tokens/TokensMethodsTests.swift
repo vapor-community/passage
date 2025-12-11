@@ -52,12 +52,11 @@ struct TokensMethodsTests {
     ) async throws -> any User {
         let store = app.passage.storage.services.store
         let passwordHash = try await app.password.async.hash(password)
-        let credential = Credential.email(email: email ?? "test@example.com", passwordHash: passwordHash)
-        try await store.users.create(with: credential)
+        let identifier = Identifier.email(email ?? "test@example.com")
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
-        let user = try await store.users.find(byCredential: credential)
-        #expect(user != nil)
-        return user!
+        return user
     }
 
     /// Creates a refresh token for a user directly in the store

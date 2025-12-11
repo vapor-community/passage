@@ -121,7 +121,7 @@ struct RegisterIntegrationTests {
                 // Verify user was created
                 let store = app.passage.storage.services.store
                 let user = try await store.users.find(
-                    byIdentifier: Identifier(kind: .email, value: "newuser@example.com")
+                    byIdentifier: Identifier.email( "newuser@example.com")
                 )
 
                 #expect(user != nil)
@@ -158,7 +158,7 @@ struct RegisterIntegrationTests {
                 // Verify user was created
                 let store = app.passage.storage.services.store
                 let user = try await store.users.find(
-                    byIdentifier: Identifier(kind: .phone, value: "+1234567890")
+                    byIdentifier: Identifier.phone( "+1234567890")
                 )
 
                 #expect(user != nil)
@@ -193,7 +193,7 @@ struct RegisterIntegrationTests {
                 // Verify user was created
                 let store = app.passage.storage.services.store
                 let user = try await store.users.find(
-                    byIdentifier: Identifier(kind: .username, value: "testuser")
+                    byIdentifier: Identifier.username( "testuser")
                 )
 
                 #expect(user != nil)
@@ -423,7 +423,7 @@ struct RegisterIntegrationTests {
                 // Verify user was created
                 let store = app.passage.storage.services.store
                 let user = try await store.users.find(
-                    byIdentifier: Identifier(kind: .email, value: "verify@example.com")
+                    byIdentifier: Identifier.email( "verify@example.com")
                 )
                 #expect(user != nil)
             })
@@ -444,7 +444,7 @@ struct RegisterIntegrationTests {
                     // Verify user is now marked as verified
                     let store = app.passage.storage.services.store
                     let user = try await store.users.find(
-                        byIdentifier: Identifier(kind: .email, value: "verify@example.com")
+                        byIdentifier: Identifier.email( "verify@example.com")
                     )
                     #expect(user?.isEmailVerified == true)
                 }
@@ -541,7 +541,7 @@ struct RegisterIntegrationTests {
                 // Verify user was created
                 let store = app.passage.storage.services.store
                 let user = try await store.users.find(
-                    byIdentifier: Identifier(kind: .phone, value: "+1234567890")
+                    byIdentifier: Identifier.phone( "+1234567890")
                 )
                 #expect(user != nil)
             })
@@ -560,7 +560,7 @@ struct RegisterIntegrationTests {
                     // Verify user is now marked as verified
                     let store = app.passage.storage.services.store
                     let user = try await store.users.find(
-                        byIdentifier: Identifier(kind: .phone, value: "+1234567890")
+                        byIdentifier: Identifier.phone( "+1234567890")
                     )
                     #expect(user?.isPhoneVerified == true)
                 }
