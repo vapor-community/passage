@@ -52,12 +52,11 @@ struct AccountMethodsTests {
     ) async throws -> any User {
         let store = app.passage.storage.services.store
         let passwordHash = try await app.password.async.hash(password)
-        let credential = Credential.email(email: email ?? "test@example.com", passwordHash: passwordHash)
-        try await store.users.create(with: credential)
+        let identifier = Identifier.email(email ?? "test@example.com")
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
-        let user = try await store.users.find(byCredential: credential)
-        #expect(user != nil)
-        return user!
+        return user
     }
 
     /// Creates a mock user without a password hash for testing
@@ -235,15 +234,13 @@ struct AccountMethodsTests {
         // Create user with phone
         let store = app.passage.storage.services.store
         let passwordHash = try await app.password.async.hash("password123")
-        let credential = Credential.phone(phone: "+1234567890", passwordHash: passwordHash)
-        try await store.users.create(with: credential)
-
-        let user = try await store.users.find(byCredential: credential)
-        #expect(user != nil)
+        let identifier = Identifier.phone("+1234567890")
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
         let request = Request(application: app, on: app.eventLoopGroup.next())
         // Login the user to the request's auth
-        request.auth.login(user!)
+        request.auth.login(user)
 
         let account = Passage.Account(request: request)
 

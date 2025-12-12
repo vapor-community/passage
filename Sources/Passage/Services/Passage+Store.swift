@@ -21,9 +21,8 @@ public extension Passage {
     protocol UserStore: Sendable {
         associatedtype ConcreateUser: User
         var userType: ConcreateUser.Type { get }
-        func create(with credential: Credential) async throws
+        func create(identifier: Identifier, with credential: Credential?) async throws -> (any User)
         func find(byId id: String) async throws -> (any User)?
-        func find(byCredential credential: Credential) async throws -> (any User)?
         func find(byIdentifier identifier: Identifier) async throws -> (any User)?
         func markEmailVerified(for user: any User) async throws
         func markPhoneVerified(for user: any User) async throws

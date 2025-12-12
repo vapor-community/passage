@@ -27,10 +27,10 @@ struct RegisterFormProtocolTests {
         }
     }
 
-    // MARK: - asCredential() Tests
+    // MARK: - asIdentifier() Tests
 
-    @Test("RegisterForm asCredential returns email credential")
-    func asCredentialWithEmail() throws {
+    @Test("RegisterForm asIdentifier returns email identifier")
+    func asIdentifierWithEmail() throws {
         let form = MockRegisterForm(
             email: "test@example.com",
             phone: nil,
@@ -39,14 +39,13 @@ struct RegisterFormProtocolTests {
             confirmPassword: "password123"
         )
 
-        let credential = try form.asCredential(hash: "hashed_password")
-        #expect(credential.identifier.kind == .email)
-        #expect(credential.identifier.value == "test@example.com")
-        #expect(credential.passwordHash == "hashed_password")
+        let identifier = try form.asIdentifier()
+        #expect(identifier.kind == .email)
+        #expect(identifier.value == "test@example.com")
     }
 
-    @Test("RegisterForm asCredential returns phone credential")
-    func asCredentialWithPhone() throws {
+    @Test("RegisterForm asIdentifier returns phone identifier")
+    func asIdentifierWithPhone() throws {
         let form = MockRegisterForm(
             email: nil,
             phone: "+1234567890",
@@ -55,14 +54,13 @@ struct RegisterFormProtocolTests {
             confirmPassword: "password123"
         )
 
-        let credential = try form.asCredential(hash: "hashed_password")
-        #expect(credential.identifier.kind == .phone)
-        #expect(credential.identifier.value == "+1234567890")
-        #expect(credential.passwordHash == "hashed_password")
+        let identifier = try form.asIdentifier()
+        #expect(identifier.kind == .phone)
+        #expect(identifier.value == "+1234567890")
     }
 
-    @Test("RegisterForm asCredential returns username credential")
-    func asCredentialWithUsername() throws {
+    @Test("RegisterForm asIdentifier returns username identifier")
+    func asIdentifierWithUsername() throws {
         let form = MockRegisterForm(
             email: nil,
             phone: nil,
@@ -71,14 +69,13 @@ struct RegisterFormProtocolTests {
             confirmPassword: "password123"
         )
 
-        let credential = try form.asCredential(hash: "hashed_password")
-        #expect(credential.identifier.kind == .username)
-        #expect(credential.identifier.value == "johndoe")
-        #expect(credential.passwordHash == "hashed_password")
+        let identifier = try form.asIdentifier()
+        #expect(identifier.kind == .username)
+        #expect(identifier.value == "johndoe")
     }
 
-    @Test("RegisterForm asCredential prefers email over phone")
-    func asCredentialPrefersEmail() throws {
+    @Test("RegisterForm asIdentifier prefers email over phone")
+    func asIdentifierPrefersEmail() throws {
         let form = MockRegisterForm(
             email: "test@example.com",
             phone: "+1234567890",
@@ -87,13 +84,13 @@ struct RegisterFormProtocolTests {
             confirmPassword: "password123"
         )
 
-        let credential = try form.asCredential(hash: "hashed_password")
-        #expect(credential.identifier.kind == .email)
-        #expect(credential.identifier.value == "test@example.com")
+        let identifier = try form.asIdentifier()
+        #expect(identifier.kind == .email)
+        #expect(identifier.value == "test@example.com")
     }
 
-    @Test("RegisterForm asCredential throws when no identifier provided")
-    func asCredentialThrowsWhenNoIdentifier() {
+    @Test("RegisterForm asIdentifier throws when no identifier provided")
+    func asIdentifierThrowsWhenNoIdentifier() {
         let form = MockRegisterForm(
             email: nil,
             phone: nil,
@@ -103,7 +100,7 @@ struct RegisterFormProtocolTests {
         )
 
         #expect(throws: AuthenticationError.identifierNotSpecified) {
-            _ = try form.asCredential(hash: "hashed_password")
+            _ = try form.asIdentifier()
         }
     }
 

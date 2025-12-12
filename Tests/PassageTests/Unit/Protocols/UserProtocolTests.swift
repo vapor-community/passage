@@ -80,7 +80,7 @@ struct UserProtocolTests {
             isPhoneVerified: false
         )
 
-        let identifier = Identifier(kind: .email, value: "test@example.com")
+        let identifier = Identifier.email("test@example.com")
         try user.check(identifier: identifier)
     }
 
@@ -97,7 +97,7 @@ struct UserProtocolTests {
             isPhoneVerified: false
         )
 
-        let identifier = Identifier(kind: .email, value: "test@example.com")
+        let identifier = Identifier.email("test@example.com")
         #expect(throws: AuthenticationError.emailIsNotVerified) {
             try user.check(identifier: identifier)
         }
@@ -118,7 +118,7 @@ struct UserProtocolTests {
             isPhoneVerified: true
         )
 
-        let identifier = Identifier(kind: .phone, value: "+1234567890")
+        let identifier = Identifier.phone("+1234567890")
         try user.check(identifier: identifier)
     }
 
@@ -135,7 +135,7 @@ struct UserProtocolTests {
             isPhoneVerified: false
         )
 
-        let identifier = Identifier(kind: .phone, value: "+1234567890")
+        let identifier = Identifier.phone("+1234567890")
         #expect(throws: AuthenticationError.phoneIsNotVerified) {
             try user.check(identifier: identifier)
         }
@@ -156,7 +156,7 @@ struct UserProtocolTests {
             isPhoneVerified: false
         )
 
-        let identifier = Identifier(kind: .username, value: "johndoe")
+        let identifier = Identifier.username("johndoe")
         try user.check(identifier: identifier)
     }
 

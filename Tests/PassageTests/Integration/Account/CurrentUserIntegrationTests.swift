@@ -95,32 +95,28 @@ struct CurrentUserIntegrationTests {
         // Hash the password
         let passwordHash = try await app.password.async.hash(password)
 
-        // Create credential based on identifier type
-        let credential: Credential
+        // Create identifier based on type
+        let identifier: Identifier
         if let email = email {
-            credential = .email(email: email, passwordHash: passwordHash)
+            identifier = .email(email)
         } else if let phone = phone {
-            credential = .phone(phone: phone, passwordHash: passwordHash)
+            identifier = .phone(phone)
         } else if let username = username {
-            credential = .username(username: username, passwordHash: passwordHash)
+            identifier = .username(username)
         } else {
             throw PassageError.unexpected(message: "At least one identifier must be provided")
         }
 
         // Create user
-        try await store.users.create(with: credential)
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
         // Update verification status if needed
-        if isEmailVerified || isPhoneVerified {
-            let user = try await store.users.find(byCredential: credential)
-            #expect(user != nil)
-
-            if isEmailVerified {
-                try await store.users.markEmailVerified(for: user!)
-            }
-            if isPhoneVerified {
-                try await store.users.markPhoneVerified(for: user!)
-            }
+        if isEmailVerified {
+            try await store.users.markEmailVerified(for: user)
+        }
+        if isPhoneVerified {
+            try await store.users.markPhoneVerified(for: user)
         }
     }
 
@@ -328,10 +324,7 @@ struct CurrentUserIntegrationTests {
 
             // Create an expired token manually
             let store = app.passage.storage.services.store
-            let user = try await store.users.find(byCredential: .email(
-                email: "user@example.com",
-                passwordHash: ""
-            ))
+            let user = try await store.users.find(byIdentifier: .email("user@example.com"))
             #expect(user != nil)
 
             // Create an access token that's already expired

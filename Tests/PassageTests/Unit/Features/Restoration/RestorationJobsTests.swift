@@ -57,16 +57,14 @@ struct RestorationJobsTests {
 
         // Create a test user
         let passwordHash = try await app.password.async.hash("password123")
-        let credential = Credential.email(email: "test@example.com", passwordHash: passwordHash)
-        try await store.users.create(with: credential)
-
-        let user = try await store.users.find(byCredential: credential)
-        #expect(user != nil)
+        let identifier = Identifier.email("test@example.com")
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
         // Create job payload
         let payload = Passage.Restoration.EmailPasswordResetCodePayload(
             email: "test@example.com",
-            userId: user!.id!.description,
+            userId: user.id!.description,
             resetURL: URL(string: "http://localhost:8080/reset")!,
             resetCode: "123456"
         )
@@ -205,16 +203,14 @@ struct RestorationJobsTests {
 
         // Create a test user
         let passwordHash = try await app.password.async.hash("password123")
-        let credential = Credential.email(email: "test@example.com", passwordHash: passwordHash)
-        try await store.users.create(with: credential)
-
-        let user = try await store.users.find(byCredential: credential)
-        #expect(user != nil)
+        let identifier = Identifier.email("test@example.com")
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
         // Create job payload
         let payload = Passage.Restoration.EmailPasswordResetCodePayload(
             email: "test@example.com",
-            userId: user!.id!.description,
+            userId: user.id!.description,
             resetURL: URL(string: "http://localhost:8080/reset")!,
             resetCode: "123456"
         )
@@ -266,17 +262,15 @@ struct RestorationJobsTests {
 
         // Create a test user
         let passwordHash = try await app.password.async.hash("password123")
-        let credential = Credential.phone(phone: "+1234567890", passwordHash: passwordHash)
-        try await store.users.create(with: credential)
-
-        let user = try await store.users.find(byCredential: credential)
-        #expect(user != nil)
+        let identifier = Identifier.phone("+1234567890")
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
         // Create job payload
         let payload = Passage.Restoration.PhonePasswordResetCodePayload(
             phone: "+1234567890",
             code: "123456",
-            userId: user!.id!.description
+            userId: user.id!.description
         )
 
         // Create capturing logger and queue context
@@ -411,17 +405,15 @@ struct RestorationJobsTests {
 
         // Create a test user
         let passwordHash = try await app.password.async.hash("password123")
-        let credential = Credential.phone(phone: "+1234567890", passwordHash: passwordHash)
-        try await store.users.create(with: credential)
-
-        let user = try await store.users.find(byCredential: credential)
-        #expect(user != nil)
+        let identifier = Identifier.phone("+1234567890")
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
         // Create job payload
         let payload = Passage.Restoration.PhonePasswordResetCodePayload(
             phone: "+1234567890",
             code: "123456",
-            userId: user!.id!.description
+            userId: user.id!.description
         )
 
         // Create queue context

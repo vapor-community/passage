@@ -90,7 +90,7 @@ public struct Passage: Sendable {
             app.queues.add(Passwordless.SendEmailMagicLinkJob())
         }
 
-        try oauth.register(config: configuration)
+        try FederatedLoginHandler(app: app, configuration: configuration).register()
     }
 
 }

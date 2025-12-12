@@ -49,6 +49,10 @@ public enum AuthenticationError: Error {
     case magicLinkMaxAttempts
     case magicLinkEmailNotFound
     case magicLinkDifferentBrowser
+
+    // Federated account errors
+    case federatedAccountAlreadyLinked
+    case federatedLoginFailed
 }
 
 extension AuthenticationError: AbortError {
@@ -92,6 +96,10 @@ extension AuthenticationError: AbortError {
             return .notFound
         case .magicLinkDifferentBrowser:
             return .forbidden
+        case .federatedAccountAlreadyLinked:
+            return .conflict
+        case .federatedLoginFailed:
+            return .unauthorized
         }
     }
 
@@ -159,6 +167,10 @@ extension AuthenticationError: AbortError {
             return "No account found with this email address and auto-creation is disabled."
         case .magicLinkDifferentBrowser:
             return "Magic link must be opened in the same browser where it was requested."
+        case .federatedAccountAlreadyLinked:
+            return "This federated account is already linked to another user."
+        case .federatedLoginFailed:
+            return "Federated login failed."
         }
     }
 }

@@ -4,10 +4,12 @@ public struct Identifier: Codable, Sendable, Equatable {
         case email
         case phone
         case username
+        case federated
     }
 
     public let kind: Kind
     public let value: String
+    public let provider: String?
 
 }
 
@@ -16,15 +18,19 @@ public struct Identifier: Codable, Sendable, Equatable {
 public extension Identifier {
 
     static func email(_ email: String) -> Identifier {
-        return Identifier(kind: .email, value: email)
+        return Identifier(kind: .email, value: email, provider: nil)
     }
 
     static func phone(_ phone: String) -> Identifier {
-        return Identifier(kind: .phone, value: phone)
+        return Identifier(kind: .phone, value: phone, provider: nil)
     }
 
     static func username(_ username: String) -> Identifier {
-        return Identifier(kind: .username, value: username)
+        return Identifier(kind: .username, value: username, provider: nil)
+    }
+
+    static func federated(_ provider: String, userId: String) -> Identifier {
+        return Identifier(kind: .federated, value: userId, provider: provider)
     }
 
 }
@@ -52,6 +58,8 @@ extension Identifier.Kind {
             return .phoneAlreadyRegistered
         case .username:
             return .usernameAlreadyRegistered
+        case .federated:
+            return .federatedAccountAlreadyLinked
         }
     }
 
@@ -63,6 +71,8 @@ extension Identifier.Kind {
             return .invalidPhoneOrPassword
         case .username:
             return .invalidUsernameOrPassword
+        case .federated:
+            return .federatedLoginFailed
         }
     }
 
