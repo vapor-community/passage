@@ -1,92 +1,15 @@
-public enum Credential: Sendable {
-    case email(email: String, passwordHash: String)
-    case phone(phone: String, passwordHash: String)
-    case username(username: String, passwordHash: String)
-}
+public struct Credential: Sendable {
 
-// MARK: - Identifier Support
+    public enum Kind: String, Sendable {
+        case password
+    }
+
+    public let kind: Kind
+    public let secret: String
+}
 
 extension Credential {
-
-    public var identifier: Identifier {
-        return .init(kind: identifierKind, value: identifierValue)
+    public static func password(_ passwordHash: String) -> Credential {
+        return Credential(kind: .password, secret: passwordHash)
     }
-
-    var identifierKind: Identifier.Kind {
-        switch self {
-        case .email: return .email
-        case .phone: return .phone
-        case .username: return .username
-        }
-    }
-
-    var identifierValue: String {
-        switch self {
-        case .email(email: let email, passwordHash: _):
-            return email
-        case .phone(phone: let phone, passwordHash: _):
-            return phone
-        case .username(username: let username, passwordHash: _):
-            return username
-        }
-    }
-
-}
-
-// MARLK: - Password Support
-
-extension Credential {
-
-    public var passwordHash: String {
-        switch self {
-        case .email(email: _, passwordHash: let passwordHash):
-            return passwordHash
-        case .phone(phone: _, passwordHash: let passwordHash):
-            return passwordHash
-        case .username(username: _, passwordHash: let passwordHash):
-            return passwordHash
-        }
-    }
-
-}
-
-// MARK: - Error Support
-
-public extension Credential {
-
-    var errorWhenIdentifierAlreadyRegistered: AuthenticationError {
-        switch self {
-        case .email:
-            return .emailAlreadyRegistered
-        case .phone:
-            return .phoneAlreadyRegistered
-        case .username:
-            return .usernameAlreadyRegistered
-        }
-    }
-
-    var errorWhenIdentifierIsInvalid: AuthenticationError {
-        switch self {
-        case .email:
-            return .invalidEmailOrPassword
-        case .phone:
-            return .invalidPhoneOrPassword
-        case .username:
-            return .invalidUsernameOrPassword
-        }
-    }
-
-    var errorWhenIdentifierNotVerified: AuthenticationError {
-        switch self {
-        case .email:
-            return .emailIsNotVerified
-        case .phone:
-            return .phoneIsNotVerified
-        case .username:
-            // Username doesn't need verification, but we need to return something
-            // This case should not be reached in normal flow
-            return .invalidUsernameOrPassword
-        }
-    }
-
 }

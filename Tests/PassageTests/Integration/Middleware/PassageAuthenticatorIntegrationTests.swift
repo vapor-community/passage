@@ -82,14 +82,13 @@ struct PassageBearerAuthenticatorIntegrationTests {
         let store = app.passage.storage.services.store
 
         let passwordHash = try await app.password.async.hash(password)
-        let credential = Credential.email(email: email, passwordHash: passwordHash)
+        let identifier = Identifier.email(email)
+        let credential = Credential.password(passwordHash)
 
-        try await store.users.create(with: credential)
+        let user = try await store.users.create(identifier: identifier, with: credential)
+        try await store.users.markEmailVerified(for: user)
 
-        let user = try await store.users.find(byCredential: credential)
-        try await store.users.markEmailVerified(for: user!)
-
-        return user!.id as! String
+        return user.id as! String
     }
 
     /// Creates a valid access token for a user

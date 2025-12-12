@@ -66,6 +66,8 @@ extension Passage.Restoration {
         case .username:
             // Username requires fallback to preferred delivery channel
             try await sendResetCodeViaPreferredChannel(to: user)
+        case .federated:
+            try await sendResetCodeViaPreferredChannel(to: user)
         }
     }
 
@@ -92,15 +94,14 @@ extension Passage.Restoration {
                 codeHash: codeHash,
                 newPasswordHash: newPasswordHash
             )
-        case .username:
+        default:
             throw AuthenticationError.restorationDeliveryNotAvailable
         }
     }
 
     /// Resend email reset code
     func resendPasswordResetCode(toEmail email: String) async throws {
-        let identifier = Identifier(kind: .email, value: email)
-        guard let user = try await store.users.find(byIdentifier: identifier) else {
+        guard let user = try await store.users.find(byIdentifier: .email(email)) else {
             throw AuthenticationError.restorationIdentifierNotFound
         }
         try await sendPasswordResetCode(to: user, byEmail: email)
@@ -108,8 +109,7 @@ extension Passage.Restoration {
 
     /// Resend phone reset code
     func resendPasswordResetCode(toPhone phone: String) async throws {
-        let identifier = Identifier(kind: .phone, value: phone)
-        guard let user = try await store.users.find(byIdentifier: identifier) else {
+        guard let user = try await store.users.find(byIdentifier: .phone(phone)) else {
             throw AuthenticationError.restorationIdentifierNotFound
         }
         try await sendPasswordResetCode(to: user, byPhone: phone)

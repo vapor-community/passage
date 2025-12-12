@@ -69,7 +69,7 @@ extension Passage.Passwordless {
         }
 
         // Find existing user (may be nil for new users)
-        let identifier = Identifier(kind: .email, value: email)
+        let identifier = Identifier.email(email)
         let user = try await store.users.find(byIdentifier: identifier)
 
         // If user doesn't exist and auto-create is disabled, throw error

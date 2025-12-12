@@ -2,6 +2,7 @@ import Testing
 import Foundation
 import Vapor
 @testable import Passage
+import PassageOnlyForTest
 
 @Suite("Delivery Protocols Tests")
 struct DeliveryProtocolsTests {
@@ -202,32 +203,16 @@ struct DeliveryProtocolsTests {
 
     // MARK: - FederatedLoginService Protocol Tests
 
-    struct MockFederatedLoginService: Passage.FederatedLoginService {
-        func register(
-            router: any RoutesBuilder,
-            origin: URL,
-            group: [PathComponent],
-            config: Passage.Configuration.FederatedLogin,
-            completion: @escaping @Sendable (
-                _ provider: Passage.FederatedLogin.Provider,
-                _ request: Request,
-                _ payload: String
-            ) async throws -> some AsyncResponseEncodable
-        ) throws {
-            // Method signature test
-        }
-    }
-
     @Test("FederatedLoginService protocol can be implemented")
     func federatedLoginServiceProtocolImplementation() {
-        let service: any Passage.FederatedLoginService = MockFederatedLoginService()
-        #expect(service is MockFederatedLoginService)
+        let service: any Passage.FederatedLoginService = Passage.OnlyForTest.MockFederatedLoginService()
+        #expect(service is Passage.OnlyForTest.MockFederatedLoginService)
     }
 
     @Test("FederatedLoginService protocol conforms to Sendable")
     func federatedLoginServiceProtocolIsSendable() {
-        let service: any Sendable = MockFederatedLoginService()
-        #expect(service is MockFederatedLoginService)
+        let service: any Sendable = Passage.OnlyForTest.MockFederatedLoginService()
+        #expect(service is Passage.OnlyForTest.MockFederatedLoginService)
     }
 
     // MARK: - Protocol Integration Tests

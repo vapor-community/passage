@@ -80,15 +80,24 @@ struct StoreProtocolsTests {
         typealias ConcreateUser = MockUser
         var userType: MockUser.Type { MockUser.self }
 
-        func create(with credential: Credential) async throws {
-            // Method signature test
+        func create(identifier: Identifier, with credential: Credential?) async throws -> any User {
+            MockUser(
+                id: UUID(),
+                email: identifier.kind == .email ? identifier.value : nil,
+                phone: identifier.kind == .phone ? identifier.value : nil,
+                username: identifier.kind == .username ? identifier.value : nil,
+                passwordHash: credential?.secret,
+                isAnonymous: false,
+                isEmailVerified: false,
+                isPhoneVerified: false
+            )
+        }
+
+        func addIdentifier(to user: any User, identifier: Identifier, with credential: Credential?) async throws -> any User {
+            user
         }
 
         func find(byId id: String) async throws -> (any User)? {
-            nil
-        }
-
-        func find(byCredential credential: Credential) async throws -> (any User)? {
             nil
         }
 

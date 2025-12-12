@@ -27,9 +27,9 @@ extension PasswordResetRequestForm: Validatable {
 extension PasswordResetRequestForm {
     func asIdentifier() throws -> Identifier {
         if let email = email {
-            return .init(kind: .email, value: email)
+            return .email(email)
         } else if let phone = phone {
-            return .init(kind: .phone, value: phone)
+            return .phone(phone)
         } else {
             throw AuthenticationError.identifierNotSpecified
         }
@@ -68,9 +68,9 @@ extension PasswordResetConfirmForm: Validatable {
 extension PasswordResetConfirmForm {
     func asIdentifier() throws -> Identifier {
         if let email = email {
-            return .init(kind: .email, value: email)
+            return .email(email)
         } else if let phone = phone {
-            return .init(kind: .phone, value: phone)
+            return .phone(phone)
         } else {
             throw AuthenticationError.identifierNotSpecified
         }

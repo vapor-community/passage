@@ -9,10 +9,9 @@ public extension Passage {
             origin: URL,
             group: [PathComponent],
             config: Passage.Configuration.FederatedLogin,
-            completion: @escaping @Sendable (
-                _ provider: Passage.FederatedLogin.Provider,
+            onSignIn: @escaping @Sendable (
                 _ request: Request,
-                _ payload: String
+                _ identity: FederatedIdentity,
             ) async throws -> some AsyncResponseEncodable
         ) throws
     }

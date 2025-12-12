@@ -56,6 +56,8 @@ extension User {
             }
         case .username:
             break
+        case .federated:
+            break
         }
     }
 }

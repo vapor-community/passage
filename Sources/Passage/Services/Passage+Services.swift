@@ -70,4 +70,8 @@ extension Passage {
     var phoneDelivery: (any PhoneDelivery)? {
         services.phoneDelivery
     }
+
+    var federatedLogin: (any FederatedLoginService)? {
+        services.federatedLogin
+    }
 }

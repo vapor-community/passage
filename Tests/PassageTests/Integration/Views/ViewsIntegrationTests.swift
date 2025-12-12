@@ -230,14 +230,13 @@ struct ViewsIntegrationTests {
             let password = "SecurePassword123!"
             let passwordHash = try await app.password.async.hash(password)
 
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            let user = try await store.users.create(identifier: identifier, with: credential)
 
             // Mark email as verified
-            let user = try await store.users.find(byCredential: credential)
-            try #require(user != nil)
-            try await store.users.markEmailVerified(for: user!)
+            try await store.users.markEmailVerified(for: user)
 
             // Submit login form with correct credentials
             try await app.testing().test(.POST, "/auth/login", headers: [
@@ -313,14 +312,13 @@ struct ViewsIntegrationTests {
             let password = "SecurePassword123!"
             let passwordHash = try await app.password.async.hash(password)
 
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            let user = try await store.users.create(identifier: identifier, with: credential)
 
             // Mark email as verified
-            let user = try await store.users.find(byCredential: credential)
-            try #require(user != nil)
-            try await store.users.markEmailVerified(for: user!)
+            try await store.users.markEmailVerified(for: user)
 
             // Submit login form with correct credentials
             try await app.testing().test(.POST, "/auth/login", headers: [
@@ -487,9 +485,10 @@ struct ViewsIntegrationTests {
             let email = "existing@example.com"
             let password = "SecurePassword123!"
             let passwordHash = try await app.password.async.hash(password)
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            _ = try await store.users.create(identifier: identifier, with: credential)
 
             // Try to register with same email (should fail)
             try await app.testing().test(.POST, "/auth/register", headers: [
@@ -566,9 +565,10 @@ struct ViewsIntegrationTests {
             let email = "existing@example.com"
             let password = "SecurePassword123!"
             let passwordHash = try await app.password.async.hash(password)
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            _ = try await store.users.create(identifier: identifier, with: credential)
 
             // Try to register with same email
             try await app.testing().test(.POST, "/auth/register", headers: [
@@ -674,9 +674,10 @@ struct ViewsIntegrationTests {
             let email = "user@example.com"
             let password = "SecurePassword123!"
             let passwordHash = try await app.password.async.hash(password)
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            _ = try await store.users.create(identifier: identifier, with: credential)
 
             // Submit password reset request form
             try await app.testing().test(.POST, "/auth/password/reset/email", headers: [
@@ -816,9 +817,10 @@ struct ViewsIntegrationTests {
             let password = "OldPassword123!"
             let newPassword = "NewPassword456!"
             let passwordHash = try await app.password.async.hash(password)
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            _ = try await store.users.create(identifier: identifier, with: credential)
 
             // Request password reset to get a code (via HTTP endpoint)
             try await app.testing().test(.POST, "/auth/password/reset/email", beforeRequest: { req in
@@ -864,9 +866,10 @@ struct ViewsIntegrationTests {
             let email = "user@example.com"
             let password = "OldPassword123!"
             let passwordHash = try await app.password.async.hash(password)
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            _ = try await store.users.create(identifier: identifier, with: credential)
 
             // Submit with invalid code
             try await app.testing().test(.POST, "/auth/password/reset/email/verify", headers: [
@@ -907,9 +910,10 @@ struct ViewsIntegrationTests {
             let password = "OldPassword123!"
             let newPassword = "NewPassword456!"
             let passwordHash = try await app.password.async.hash(password)
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            _ = try await store.users.create(identifier: identifier, with: credential)
 
             // Request password reset to get a code (via HTTP endpoint)
             try await app.testing().test(.POST, "/auth/password/reset/email", beforeRequest: { req in
@@ -956,9 +960,10 @@ struct ViewsIntegrationTests {
             let email = "user@example.com"
             let password = "OldPassword123!"
             let passwordHash = try await app.password.async.hash(password)
-            let credential = Credential.email(email: email, passwordHash: passwordHash)
+            let identifier = Identifier.email(email)
+            let credential = Credential.password(passwordHash)
             let store = app.passage.storage.services.store
-            try await store.users.create(with: credential)
+            _ = try await store.users.create(identifier: identifier, with: credential)
 
             // Submit with invalid code
             try await app.testing().test(.POST, "/auth/password/reset/email/verify", headers: [

@@ -115,27 +115,23 @@ struct PasswordlessIntegrationTests {
         let store = app.passage.storage.services.store
         let passwordHash = try await app.password.async.hash(password)
 
-        let credential: Credential
+        let identifier: Identifier
         if let email = email {
-            credential = .email(email: email, passwordHash: passwordHash)
+            identifier = .email(email)
         } else if let phone = phone {
-            credential = .phone(phone: phone, passwordHash: passwordHash)
+            identifier = .phone(phone)
         } else {
             fatalError("Must provide email or phone")
         }
 
-        try await store.users.create(with: credential)
+        let credential = Credential.password(passwordHash)
+        let user = try await store.users.create(identifier: identifier, with: credential)
 
-        if isEmailVerified || isPhoneVerified {
-            let user = try await store.users.find(byCredential: credential)
-            #expect(user != nil)
-
-            if isEmailVerified {
-                try await store.users.markEmailVerified(for: user!)
-            }
-            if isPhoneVerified {
-                try await store.users.markPhoneVerified(for: user!)
-            }
+        if isEmailVerified {
+            try await store.users.markEmailVerified(for: user)
+        }
+        if isPhoneVerified {
+            try await store.users.markPhoneVerified(for: user)
         }
     }
 
@@ -279,7 +275,7 @@ struct PasswordlessIntegrationTests {
 
             // Verify user was created
             let store = app.passage.storage.services.store
-            let user = try await store.users.find(byIdentifier: Identifier(kind: .email, value: email))
+            let user = try await store.users.find(byIdentifier: Identifier.email(email))
             #expect(user != nil)
             #expect(user?.isEmailVerified == true)
         }
@@ -311,7 +307,7 @@ struct PasswordlessIntegrationTests {
 
             // Verify email is now verified
             let store = app.passage.storage.services.store
-            let user = try await store.users.find(byIdentifier: Identifier(kind: .email, value: email))
+            let user = try await store.users.find(byIdentifier: Identifier.email(email))
             #expect(user?.isEmailVerified == true)
         }
     }
@@ -494,7 +490,7 @@ struct PasswordlessIntegrationTests {
 
             // Verify user has no password
             let store = app.passage.storage.services.store
-            let user = try await store.users.find(byIdentifier: Identifier(kind: .email, value: email))
+            let user = try await store.users.find(byIdentifier: Identifier.email(email))
             #expect(user != nil)
             #expect(user?.passwordHash == nil)
 
@@ -530,7 +526,7 @@ struct PasswordlessIntegrationTests {
 
             // Verify user email is marked as verified
             let store = app.passage.storage.services.store
-            let user = try await store.users.find(byIdentifier: Identifier(kind: .email, value: email))
+            let user = try await store.users.find(byIdentifier: Identifier.email(email))
             #expect(user != nil)
             #expect(user?.isEmailVerified == true)
         }
