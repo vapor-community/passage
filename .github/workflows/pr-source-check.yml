@@ -1,0 +1,21 @@
+name: PR Source Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR source branch
+        run: |
+          SOURCE_BRANCH="${{ github.head_ref }}"
+          echo "PR source branch: $SOURCE_BRANCH"
+
+          if [[ "$SOURCE_BRANCH" == "dev" || "$SOURCE_BRANCH" == hotfix* ]]; then
+            echo "✓ Valid source branch"
+          else
+            echo "::error::PRs to main must come from 'dev' or 'hotfix*' branches, got '$SOURCE_BRANCH'"
+            exit 1
+          fi
