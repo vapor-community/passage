@@ -23,7 +23,7 @@ extension Passage.FederatedLogin {
     }
 
     var configuration: Passage.Configuration.FederatedLogin {
-        request.configuration.oauth
+        request.configuration.federatedLogin
     }
 
 }

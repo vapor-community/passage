@@ -8,7 +8,7 @@ extension Passage.Views {
         let routes: Passage.Configuration.Routes
         let restoration: Passage.Configuration.Restoration
         let passwordless: Passage.Configuration.Passwordless
-        let oauth: Passage.Configuration.FederatedLogin
+        let federatedLogin: Passage.Configuration.FederatedLogin
         let group: [PathComponent]
 
         func boot(routes builder: any RoutesBuilder) throws {
@@ -61,15 +61,15 @@ extension Passage.Views {
             // MARK: Account Linking Views
 
             // Select account to link
-            if let _ = config.oauthLinkSelect {
-                grouped.get(oauth.linkSelectPath) { req in
+            if let _ = config.linkAccountSelect {
+                grouped.get(federatedLogin.linkSelectPath) { req in
                     try await req.views.renderLinkAccountSelectView()
                 }
             }
 
             // Verify account to link
-            if let _ = config.oauthLinkVerify {
-                grouped.get(oauth.linkVerifyPath) { req in
+            if let _ = config.linkAccountVerify {
+                grouped.get(federatedLogin.linkVerifyPath) { req in
                     try await req.views.renderLinkAccountVerifyView()
                 }
             }

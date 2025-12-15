@@ -203,7 +203,7 @@ try await app.passage.configure(
     ),
     configuration: .init(
         origin: URL(string: "https://api.example.com")!,
-        oauth: .init(
+        federatedLogin: .init(
             routes: .init(),
             providers: [
                 .github(
@@ -305,7 +305,7 @@ try await app.passage.configure(
         ),
 
         // Federated Login configuration
-        oauth: .init(
+        federatedLogin: .init(
             providers: [
                 .github(
                     credentials: .conventional

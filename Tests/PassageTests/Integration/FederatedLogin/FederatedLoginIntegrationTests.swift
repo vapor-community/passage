@@ -46,7 +46,7 @@ struct FederatedLoginIntegrationTests {
                 phone: .init(codeLength: 6, codeExpiration: 600, maxAttempts: 5),
                 useQueues: false
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 providers: [],
                 accountLinking: .init(strategy: .disabled),
                 redirectLocation: "/dashboard"
@@ -92,7 +92,7 @@ struct FederatedLoginIntegrationTests {
                 phone: .init(codeLength: 6, codeExpiration: 600, maxAttempts: 5),
                 useQueues: false
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 providers: [],
                 accountLinking: .init(strategy: .automatic(allowed: [.email], fallbackToManualOnMultipleMatches: true)),
                 redirectLocation: "/dashboard"
@@ -121,8 +121,8 @@ struct FederatedLoginIntegrationTests {
 
         let theme = Passage.Views.Theme(colors: .defaultLight)
         let views = Passage.Configuration.Views(
-            oauthLinkSelect: .init(style: .minimalism, theme: theme),
-            oauthLinkVerify: .init(style: .minimalism, theme: theme)
+            linkAccountSelect: .init(style: .minimalism, theme: theme),
+            linkAccountVerify: .init(style: .minimalism, theme: theme)
         )
 
         let configuration = try Passage.Configuration(
@@ -144,7 +144,7 @@ struct FederatedLoginIntegrationTests {
                 phone: .init(codeLength: 6, codeExpiration: 600, maxAttempts: 5),
                 useQueues: false
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 providers: [],
                 accountLinking: .init(strategy: .manual(allowed: [.email])),
                 redirectLocation: "/dashboard"
@@ -331,7 +331,7 @@ struct FederatedLoginIntegrationTests {
             // Should redirect to link select page
             #expect(response.status == .seeOther)
             let location = response.headers.first(name: .location) ?? ""
-            #expect(location.contains("link/select") || location.contains("oauth/link"))
+            #expect(location.contains("link/select") || location.contains("connect/link"))
         }
     }
 

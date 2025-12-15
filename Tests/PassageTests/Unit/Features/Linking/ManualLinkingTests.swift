@@ -39,8 +39,8 @@ struct ManualLinkingTests {
         if withViews {
             let theme = Passage.Views.Theme(colors: .defaultLight)
             views = .init(
-                oauthLinkSelect: .init(style: .minimalism, theme: theme),
-                oauthLinkVerify: .init(style: .minimalism, theme: theme)
+                linkAccountSelect: .init(style: .minimalism, theme: theme),
+                linkAccountVerify: .init(style: .minimalism, theme: theme)
             )
         } else {
             views = .init()
@@ -65,7 +65,7 @@ struct ManualLinkingTests {
                 phone: .init(codeLength: 6, codeExpiration: 600, maxAttempts: 5),
                 useQueues: false
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 providers: [],
                 accountLinking: .init(
                     strategy: .manual(allowed: allowedIdentifiers),

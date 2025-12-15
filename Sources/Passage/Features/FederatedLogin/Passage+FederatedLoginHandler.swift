@@ -17,7 +17,7 @@ extension Passage {
                 router: app,
                 origin: configuration.origin,
                 group: configuration.routes.group,
-                config: configuration.oauth,
+                config: configuration.federatedLogin,
             ) { (request, identity) in
                 return try await request.federated.login(identity: identity)
             }

@@ -74,8 +74,8 @@ extension Passage.Linking.ManualLinking {
         let request: Request
         let config: Passage.Configuration
 
-        private let sessionKey = "passage_oauth_linking_state"
-        private let cookieName = "passage_oauth_linking"
+        private let sessionKey = "passage_account_linking_state"
+        private let cookieName = "passage_account_linking"
 
         // MARK: - Public API
 

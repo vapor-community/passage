@@ -52,7 +52,7 @@ struct AutomaticLinkingTests {
                 phone: .init(codeLength: 6, codeExpiration: 600, maxAttempts: 5),
                 useQueues: false
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 providers: [],
                 accountLinking: .init(strategy: .automatic(allowed: allowedIdentifiers, fallbackToManualOnMultipleMatches: true)),
                 redirectLocation: "/dashboard"

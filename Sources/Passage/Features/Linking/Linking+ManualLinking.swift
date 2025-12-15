@@ -53,8 +53,8 @@ extension Passage.Linking.ManualLinking {
             return .skipped
         }
 
-        guard request.configuration.views.oauthLinkSelect != nil &&
-                request.configuration.views.oauthLinkVerify != nil else {
+        guard request.configuration.views.linkAccountSelect != nil &&
+                request.configuration.views.linkAccountVerify != nil else {
             return .conflict(candidates: candidates.map { $0.userId } )
         }
 

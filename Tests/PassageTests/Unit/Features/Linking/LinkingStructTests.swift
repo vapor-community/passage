@@ -45,7 +45,7 @@ struct LinkingStructTests {
                 phone: .init(codeLength: 6, codeExpiration: 600, maxAttempts: 5),
                 useQueues: false
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 providers: [],
                 accountLinking: .init(strategy: .automatic(allowed: [.email], fallbackToManualOnMultipleMatches: true)),
                 redirectLocation: "/dashboard"

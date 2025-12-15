@@ -14,35 +14,35 @@ extension Passage.Linking {
             let grouped = group.isEmpty ? builder : builder.grouped(configuration.routes.group)
 
             // Handle a form sent from the Link Account Select view
-            grouped.post(configuration.oauth.linkSelectPath) { req in
+            grouped.post(configuration.federatedLogin.linkSelectPath) { req in
                 do {
                     let form = try req.decodeContentAsFormOfType(req.contracts.linkAccountSelectForm)
 
                     try await req.linking.manual.advance(withSelectedUserId: form.selectedUserId)
 
-                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.oauthLinkSelect else {
+                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.linkAccountSelect else {
                         return try await HTTPStatus.ok.encodeResponse(for: req)
                     }
 
                     return req.views.handleLinkAccountSelectFormSubmit(
                         of: view,
-                        at: group + configuration.oauth.linkVerifyPath,
+                        at: group + configuration.federatedLogin.linkVerifyPath,
                     )
                 } catch {
-                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.oauthLinkSelect else {
+                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.linkAccountSelect else {
                         throw error
                     }
 
                     return req.views.handleLinkAccountSelectFormFailure(
                         of: view,
-                        at: group + configuration.oauth.linkSelectPath,
+                        at: group + configuration.federatedLogin.linkSelectPath,
                         with: error
                     )
                 }
             }
 
             // Handle a form sent from the Link Account Verify view
-            grouped.post(configuration.oauth.linkVerifyPath) { req in
+            grouped.post(configuration.federatedLogin.linkVerifyPath) { req in
                 do {
                     let form = try req.decodeContentAsFormOfType(req.contracts.linkAccountVerifyForm)
 
@@ -51,9 +51,9 @@ extension Passage.Linking {
                         verificationCode: form.verificationCode,
                     )
 
-                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.oauthLinkVerify else {
+                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.linkAccountVerify else {
                         let redirectURL = buildRedirectURL(
-                            base: configuration.oauth.redirectLocation,
+                            base: configuration.federatedLogin.redirectLocation,
                             code: try await req.tokens.createExchangeCode(for: user)
                         )
                         return req.redirect(to: redirectURL)
@@ -61,16 +61,16 @@ extension Passage.Linking {
 
                     return req.views.handleLinkAccountVerifyFormSubmit(
                         of: view,
-                        at: group + configuration.oauth.linkVerifyPath,
+                        at: group + configuration.federatedLogin.linkVerifyPath,
                     )
                 } catch {
-                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.oauthLinkVerify else {
+                    guard req.isFormSubmission, req.isWaitingForHTML, let view = req.configuration.views.linkAccountVerify else {
                         return try await HTTPStatus.ok.encodeResponse(for: req)
                     }
 
                     return req.views.handleLinkAccountVerifyFormFailure(
                         of: view,
-                        at: group + configuration.oauth.linkVerifyPath,
+                        at: group + configuration.federatedLogin.linkVerifyPath,
                         with: error
                     )
                 }
