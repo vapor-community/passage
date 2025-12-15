@@ -4,7 +4,22 @@ Links OAuth logins to existing user accounts based on matching verified email or
 
 ## Overview
 
-When a user logs in via OAuth, Passage searches for existing accounts with matching verified identifiers. Based on the configured strategy, it either automatically links the account or initiates a manual verification flow where the user selects and proves ownership of an existing account.
+Account Linking is always triggered from [Federated Login](../FederatedLogin/README.md). When a user logs in via OAuth, Passage searches for existing accounts with matching verified identifiers. Based on the configured strategy, it either automatically links the account or initiates a manual verification flow where the user selects and proves ownership of an existing account.
+
+### Flow Outcomes
+
+The Account Linking flow returns one of the following results:
+
+| Result | Description |
+|--------|-------------|
+| `.complete` | New federated identity successfully linked to an existing user |
+| `.initiated` | Manual linking flow started, user redirected to selection view |
+| `.skipped` | Account linking disabled, or no matching candidates found |
+| `.conflict` | Multiple candidates found but manual linking is disabled |
+
+When `.conflict` is returned, the app developer needs to handle this case by providing appropriate UI for conflict resolution.
+
+> **Note:** Currently the system handles `.skipped` and `.conflict` identically (creates a new user), as the `.conflict` response handling is not yet fully implemented.
 
 ## Configuration
 
@@ -66,6 +81,18 @@ Manual linking provides a UI flow where users select which existing account to l
 - If the user **has a password**: verify with password
 - If no password but **verified email**: send email verification code
 - If no password but **verified phone**: send SMS verification code
+
+### Completion & Redirect
+
+When Account Linking completes successfully (either automatic or manual), the user is redirected to the configured `redirectLocation` with an exchange code appended as a query parameter:
+
+```
+https://myapp.com/callback?code=<exchange_code>
+```
+
+The exchange code is a short-lived, one-time-use token that can be exchanged for access and refresh tokens via the `/auth/exchange-code` endpoint. This allows API clients to obtain tokens after the browser-based OAuth flow completes.
+
+The redirect location is configured in `federatedLogin.redirectLocation` (default: `/`).
 
 ## Routes & Endpoints
 

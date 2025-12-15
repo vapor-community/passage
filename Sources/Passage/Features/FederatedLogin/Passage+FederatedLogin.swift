@@ -79,6 +79,7 @@ extension Passage.FederatedLogin {
             )
             return try await completeLogin(for: user)
         case .conflict(_):
+            // TODO: let developers know about conflicts in redirection response
             let user = try await store.users.create(
                 identifier: identity.identifier,
                 with: nil
