@@ -62,8 +62,8 @@ struct ManualLinkingRouteCollectionIntegrationTests {
         if withViews {
             let theme = Passage.Views.Theme(colors: .defaultLight)
             views = .init(
-                oauthLinkSelect: .init(style: .minimalism, theme: theme),
-                oauthLinkVerify: .init(style: .minimalism, theme: theme)
+                linkAccountSelect: .init(style: .minimalism, theme: theme),
+                linkAccountVerify: .init(style: .minimalism, theme: theme)
             )
         } else {
             views = .init()
@@ -89,7 +89,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 phone: .init(codeLength: 6, codeExpiration: 600, maxAttempts: 5),
                 useQueues: false
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 providers: [],
                 accountLinking: .init(
                     strategy: .manual(allowed: allowedIdentifiers),
@@ -229,7 +229,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             try await configureWithManualLinking(app, withViews: true)
         }) { app in
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     req.headers.contentType = .urlEncodedForm
                     try req.content.encode(["selectedUserId": "some-user-id"], as: .urlEncodedForm)
@@ -247,7 +247,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             try await configureWithManualLinking(app, withViews: false)
         }) { app in
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     req.headers.contentType = .urlEncodedForm
                     try req.content.encode([:] as [String: String], as: .urlEncodedForm)
@@ -265,7 +265,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             try await configureWithManualLinking(app, withViews: false)
         }) { app in
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     req.headers.contentType = .urlEncodedForm
                     try req.content.encode(["password": "password123"], as: .urlEncodedForm)
@@ -301,7 +301,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "oauth-user-123",
+                        userId: "some-user-123",
                         verifiedEmails: ["candidate@example.com"],
                         verifiedPhones: []
                     ))
@@ -322,7 +322,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Step 2: POST to actual link/select route with session cookie
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -359,7 +359,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "oauth-invalid",
+                        userId: "some-invalid",
                         verifiedEmails: ["candidate@example.com"],
                         verifiedPhones: []
                     ))
@@ -374,7 +374,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // POST with invalid user ID
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -413,7 +413,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "verify-oauth-123",
+                        userId: "verify-some-123",
                         verifiedEmails: ["verify-user@example.com"],
                         verifiedPhones: []
                     ))
@@ -471,7 +471,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Step 2: POST to link/select route (advance to verification)
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -490,7 +490,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Step 3: POST to link/verify route (complete with password)
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -544,7 +544,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "wrong-pw-oauth",
+                        userId: "wrong-pw-some",
                         verifiedEmails: ["wrong-pw@example.com"],
                         verifiedPhones: []
                     ))
@@ -556,7 +556,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Advance to verification
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -573,7 +573,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Try to verify with wrong password
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -610,7 +610,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "no-creds-oauth",
+                        userId: "no-creds-some",
                         verifiedEmails: ["no-creds@example.com"],
                         verifiedPhones: []
                     ))
@@ -622,7 +622,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Advance
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -639,7 +639,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Try to verify without credentials
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -675,7 +675,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "no-select-oauth",
+                        userId: "no-select-some",
                         verifiedEmails: ["no-select@example.com"],
                         verifiedPhones: []
                     ))
@@ -687,7 +687,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Try to verify without advancing (no user selected)
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -725,7 +725,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "redirect-oauth",
+                        userId: "redirect-some",
                         verifiedEmails: ["redirect-test@example.com"],
                         verifiedPhones: []
                     ))
@@ -827,7 +827,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Select user2
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -845,7 +845,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Verify with user2's password
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -921,7 +921,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "phone-oauth",
+                        userId: "phone-some",
                         verifiedEmails: [],
                         verifiedPhones: ["+15551234567"]
                     ))
@@ -942,7 +942,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Select and verify
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -959,7 +959,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             )
 
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -975,7 +975,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // Verify linking
             let store = app.passage.storage.services.store
             let linkedUser = try await store.users.find(
-                byIdentifier: .federated("google", userId: "phone-oauth")
+                byIdentifier: .federated("google", userId: "phone-some")
             )
             #expect(linkedUser != nil)
             #expect(linkedUser?.phone == "+15551234567")
@@ -1009,7 +1009,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "html-select-oauth",
+                        userId: "html-select-some",
                         verifiedEmails: ["html-select@example.com"],
                         verifiedPhones: []
                     ))
@@ -1024,7 +1024,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // POST as HTML form submission (Accept: text/html)
             // Lines 26-30: handleLinkAccountSelectFormSubmit redirects to verify path
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1064,7 +1064,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "html-select-error-oauth",
+                        userId: "html-select-error-some",
                         verifiedEmails: ["html-select-error@example.com"],
                         verifiedPhones: []
                     ))
@@ -1079,7 +1079,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // POST as HTML form with invalid user ID
             // Lines 35-40: handleLinkAccountSelectFormFailure redirects back with error
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1120,7 +1120,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "html-verify-oauth",
+                        userId: "html-verify-some",
                         verifiedEmails: ["html-verify@example.com"],
                         verifiedPhones: []
                     ))
@@ -1132,7 +1132,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Advance to verification (API style, no Accept: text/html)
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1150,7 +1150,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // POST as HTML form submission to verify
             // Lines 61-65: handleLinkAccountVerifyFormSubmit redirects to dashboard
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1191,7 +1191,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "google",
-                        userId: "html-verify-error-oauth",
+                        userId: "html-verify-error-some",
                         verifiedEmails: ["html-verify-error@example.com"],
                         verifiedPhones: []
                     ))
@@ -1203,7 +1203,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
 
             // Advance to verification
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1221,7 +1221,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // POST as HTML form with wrong password
             // Lines 70-75: handleLinkAccountVerifyFormFailure redirects back with error
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1262,7 +1262,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
                 beforeRequest: { req in
                     try req.content.encode(InitiateRequest(
                         provider: "github",
-                        userId: "html-full-flow-oauth",
+                        userId: "html-full-flow-some",
                         verifiedEmails: ["html-full-flow@example.com"],
                         verifiedPhones: []
                     ))
@@ -1278,7 +1278,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // Step 2: HTML form submission to link/select
             // Should redirect to verify path
             try await app.testing().test(
-                .POST, "auth/oauth/link/select",
+                .POST, "auth/connect/link/select",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1301,7 +1301,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // Step 3: HTML form submission to link/verify
             // Should redirect to dashboard
             try await app.testing().test(
-                .POST, "auth/oauth/link/verify",
+                .POST, "auth/connect/link/verify",
                 beforeRequest: { req in
                     if let cookie = sessionCookie {
                         req.headers.add(name: .cookie, value: cookie)
@@ -1320,7 +1320,7 @@ struct ManualLinkingRouteCollectionIntegrationTests {
             // Verify: Federated identifier is now linked to user
             let store = app.passage.storage.services.store
             let federatedUser = try await store.users.find(
-                byIdentifier: .federated("github", userId: "html-full-flow-oauth")
+                byIdentifier: .federated("github", userId: "html-full-flow-some")
             )
             #expect(federatedUser != nil)
             #expect(federatedUser?.id?.description == userId)

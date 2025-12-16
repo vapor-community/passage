@@ -12,7 +12,7 @@ extension Passage {
         let passwordless: Passwordless
         let verification: Verification
         let restoration: Restoration
-        let oauth: FederatedLogin
+        let federatedLogin: FederatedLogin
         let views: Views
 
         public init(
@@ -24,7 +24,7 @@ extension Passage {
             passwordless: Passwordless = .init(),
             verification: Verification = .init(),
             restoration: Restoration = .init(),
-            oauth: FederatedLogin = .init(routes: .init(), providers: []),
+            federatedLogin: FederatedLogin = .init(routes: .init(), providers: []),
             views: Views = .init()
         ) throws {
             self.origin = origin
@@ -35,7 +35,7 @@ extension Passage {
             self.passwordless = passwordless
             self.verification = verification
             self.restoration = restoration
-            self.oauth = oauth
+            self.federatedLogin = federatedLogin
             self.views = views
         }
     }

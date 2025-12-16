@@ -45,7 +45,7 @@ extension Passage.Linking {
 extension Passage.Linking {
 
     var config: Passage.Configuration.FederatedLogin.AccountLinking {
-        request.configuration.oauth.accountLinking
+        request.configuration.federatedLogin.accountLinking
     }
 
     var store: Passage.Store {

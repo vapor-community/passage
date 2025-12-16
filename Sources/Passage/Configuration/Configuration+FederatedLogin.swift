@@ -14,7 +14,7 @@ public extension Passage.Configuration {
             }
 
             public init() {
-                self.group = ["oauth"]
+                self.group = ["connect"]
             }
         }
 

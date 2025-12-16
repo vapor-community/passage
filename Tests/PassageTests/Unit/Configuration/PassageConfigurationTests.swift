@@ -20,7 +20,7 @@ struct PassageConfigurationTests {
         #expect(config.tokens.issuer == nil)
         #expect(config.verification.useQueues == false)
         #expect(config.restoration.useQueues == false)
-        #expect(config.oauth.providers.isEmpty)
+        #expect(config.federatedLogin.providers.isEmpty)
         #expect(config.views.enabled == false)
     }
 
@@ -94,14 +94,14 @@ struct PassageConfigurationTests {
         let config = try Passage.Configuration(
             origin: URL(string: "https://example.com")!,
             jwt: .init(jwks: .init(json: "{}")),
-            oauth: .init(
+            federatedLogin: .init(
                 routes: .init(group: "social"),
                 providers: [.google(), .github()]
             )
         )
 
-        #expect(config.oauth.providers.count == 2)
-        #expect(config.oauth.routes.group[0].description == "social")
+        #expect(config.federatedLogin.providers.count == 2)
+        #expect(config.federatedLogin.routes.group[0].description == "social")
     }
 
     @Test("Configuration with views enabled")
@@ -142,7 +142,7 @@ struct PassageConfigurationTests {
                 preferredDelivery: .email,
                 useQueues: true
             ),
-            oauth: .init(
+            federatedLogin: .init(
                 routes: .init(group: "oauth"),
                 providers: [.google()]
             ),
@@ -157,7 +157,7 @@ struct PassageConfigurationTests {
         #expect(config.tokens.issuer == "https://auth.example.com")
         #expect(config.verification.useQueues == true)
         #expect(config.restoration.useQueues == true)
-        #expect(config.oauth.providers.count == 1)
+        #expect(config.federatedLogin.providers.count == 1)
         #expect(config.views.enabled == true)
     }
 

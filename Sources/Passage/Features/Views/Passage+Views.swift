@@ -366,11 +366,11 @@ extension Passage.Views {
 extension Passage.Views {
 
     func renderLinkAccountSelectView() async throws -> View {
-        guard let view = config.oauthLinkSelect else {
+        guard let view = config.linkAccountSelect else {
             throw Abort(.notFound)
         }
         let state = try await request.linking.manual.loadLinkingState()
-        let params = OAuthLinkSelectViewContext(
+        let params = LinkAccountSelectViewContext(
             provider: state.provider,
             candidates: state.candidates.map {
                 .init(
@@ -391,7 +391,7 @@ extension Passage.Views {
     }
 
     func handleLinkAccountSelectFormSubmit(
-        of view: Passage.Configuration.Views.OAuthLinkSelectView,
+        of view: Passage.Configuration.Views.LinkAccountSelectView,
         at path: [PathComponent],
     ) -> Response {
         return redirect(
@@ -402,7 +402,7 @@ extension Passage.Views {
     }
 
     func handleLinkAccountSelectFormFailure(
-        of view: Passage.Configuration.Views.OAuthLinkSelectView,
+        of view: Passage.Configuration.Views.LinkAccountSelectView,
         at path: [PathComponent],
         with error: any Error,
     ) -> Response {
@@ -420,7 +420,7 @@ extension Passage.Views {
 extension Passage.Views {
 
     func renderLinkAccountVerifyView() async throws -> View {
-        guard let view = config.oauthLinkVerify else {
+        guard let view = config.linkAccountVerify else {
             throw Abort(.notFound)
         }
 
@@ -434,7 +434,7 @@ extension Passage.Views {
             throw Abort(.badRequest, reason: "Invalid user selection")
         }
 
-        let params = OAuthLinkVerifyViewContext(
+        let params = LinkAccountVerifyViewContext(
             maskedEmail: candidate.email.map { maskEmail($0) },
             hasPassword: candidate.hasPassword,
             canUseEmailCode: !candidate.hasPassword && candidate.isEmailVerified,
@@ -451,14 +451,14 @@ extension Passage.Views {
     }
 
     func handleLinkAccountVerifyFormSubmit(
-        of view: Passage.Configuration.Views.OAuthLinkVerifyView,
+        of view: Passage.Configuration.Views.LinkAccountVerifyView,
         at path: [PathComponent],
     ) -> Response {
-        return request.redirect(to: request.configuration.oauth.redirectLocation)
+        return request.redirect(to: request.configuration.federatedLogin.redirectLocation)
     }
 
     func handleLinkAccountVerifyFormFailure(
-        of view: Passage.Configuration.Views.OAuthLinkVerifyView,
+        of view: Passage.Configuration.Views.LinkAccountVerifyView,
         at path: [PathComponent],
         with error: any Error,
     ) -> Response {

@@ -69,12 +69,12 @@ public struct Passage: Sendable {
                 routes: configuration.routes,
                 restoration: configuration.restoration,
                 passwordless: configuration.passwordless,
-                oauth: configuration.oauth,
+                federatedLogin: configuration.federatedLogin,
                 group: configuration.routes.group
             ))
         }
 
-        if configuration.oauth.accountLinking.enabled {
+        if configuration.federatedLogin.accountLinking.enabled {
             try app.register(collection: Linking.RouteCollection(
                 configuration: configuration
             ))

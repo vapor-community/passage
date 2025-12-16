@@ -13,7 +13,7 @@ struct FederatedLoginConfigurationTests {
         let routes = Passage.Configuration.FederatedLogin.Routes()
 
         #expect(routes.group.count == 1)
-        #expect(routes.group[0].description == "oauth")
+        #expect(routes.group[0].description == "connect")
     }
 
     @Test("FederatedLogin routes custom group")
@@ -30,22 +30,22 @@ struct FederatedLoginConfigurationTests {
 
     @Test("FederatedLogin default configuration")
     func federatedLoginDefault() {
-        let oauth = Passage.Configuration.FederatedLogin(routes: .init(), providers: [])
+        let config = Passage.Configuration.FederatedLogin(routes: .init(), providers: [])
 
-        #expect(oauth.routes.group[0].description == "oauth")
-        #expect(oauth.providers.isEmpty)
-        #expect(oauth.redirectLocation == "/")
+        #expect(config.routes.group[0].description == "connect")
+        #expect(config.providers.isEmpty)
+        #expect(config.redirectLocation == "/")
     }
 
     @Test("FederatedLogin with custom redirect")
     func federatedLoginCustomRedirect() {
-        let oauth = Passage.Configuration.FederatedLogin(
+        let config = Passage.Configuration.FederatedLogin(
             routes: .init(),
             providers: [],
             redirectLocation: "/dashboard"
         )
 
-        #expect(oauth.redirectLocation == "/dashboard")
+        #expect(config.redirectLocation == "/dashboard")
     }
 
     @Test("FederatedLogin with providers")
@@ -55,14 +55,14 @@ struct FederatedLoginConfigurationTests {
             .github()
         ]
 
-        let oauth = Passage.Configuration.FederatedLogin(
+        let config = Passage.Configuration.FederatedLogin(
             routes: .init(),
             providers: providers
         )
 
-        #expect(oauth.providers.count == 2)
-        #expect(oauth.providers[0].name == .google)
-        #expect(oauth.providers[1].name == .github)
+        #expect(config.providers.count == 2)
+        #expect(config.providers[0].name == .google)
+        #expect(config.providers[1].name == .github)
     }
 
     // MARK: - Path Helper Tests
@@ -127,12 +127,12 @@ struct FederatedLoginConfigurationTests {
 
     @Test("FederatedLogin Sendable conformance")
     func federatedLoginSendableConformance() {
-        let oauth: Passage.Configuration.FederatedLogin = .init(
+        let federatedLogin: Passage.Configuration.FederatedLogin = .init(
             routes: .init(),
             providers: []
         )
 
-        let _: any Sendable = oauth
-        let _: any Sendable = oauth.routes
+        let _: any Sendable = federatedLogin
+        let _: any Sendable = federatedLogin.routes
     }
 }

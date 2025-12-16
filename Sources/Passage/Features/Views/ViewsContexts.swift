@@ -222,7 +222,7 @@ extension Passage.Views {
 
 extension Passage.Views {
 
-    struct OAuthLinkSelectViewContext: Content {
+    struct LinkAccountSelectViewContext: Content {
 
         struct Candidate: Content {
             let userId: String
@@ -241,7 +241,7 @@ extension Passage.Views {
 
 extension Passage.Views {
 
-    struct OAuthLinkVerifyViewContext: Content {
+    struct LinkAccountVerifyViewContext: Content {
         let maskedEmail: String?
         let hasPassword: Bool
         let canUseEmailCode: Bool
