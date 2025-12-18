@@ -166,6 +166,10 @@ When `useQueues: true`, emails are sent via Vapor Queues:
 
 When `useQueues: false`, emails are sent synchronously during the request.
 
+### Email Delivery with Mailgun
+
+For magic link emails, use [passage-mailgun](https://github.com/rozd/passage-mailgun) - a ready-to-use Mailgun implementation:
+
 ### Error Handling
 
 | Error | Trigger |

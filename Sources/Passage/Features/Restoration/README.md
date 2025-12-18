@@ -185,6 +185,10 @@ On successful password reset, **all refresh tokens** for the user are revoked. T
 - Prevents stolen tokens from being used
 - Forces re-authentication with the new password
 
+### Email Delivery with Mailgun
+
+For email-based password reset, use [passage-mailgun](https://github.com/rozd/passage-mailgun) - a ready-to-use Mailgun implementation:
+
 ## View Templates
 
 For HTML form-based password reset, configure view templates:
