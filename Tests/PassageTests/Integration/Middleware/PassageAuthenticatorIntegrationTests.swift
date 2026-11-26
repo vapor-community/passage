@@ -14,7 +14,7 @@ struct `PassageBearerAuthenticator Integration Tests` {
     @Sendable private func configure(_ app: Application) async throws {
         // Add HMAC key for JWT signing
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )

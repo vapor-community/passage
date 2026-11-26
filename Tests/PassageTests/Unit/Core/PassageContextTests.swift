@@ -73,7 +73,7 @@ struct `PassageContext Tests` {
             app.middleware.use(app.sessions.middleware)
 
             await app.jwt.keys.add(
-                hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+                hmac: HMACKey(from: passageTestHMACSecret),
                 digestAlgorithm: .sha256,
                 kid: JWKIdentifier(string: "test-key")
             )
@@ -139,7 +139,7 @@ struct `PassageContext Tests` {
     func `login via browser with sessions disabled throws PassageError sessionsDisabled`() async throws {
         try await withApp(configure: { app in
             await app.jwt.keys.add(
-                hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+                hmac: HMACKey(from: passageTestHMACSecret),
                 digestAlgorithm: .sha256,
                 kid: JWKIdentifier(string: "test-key")
             )

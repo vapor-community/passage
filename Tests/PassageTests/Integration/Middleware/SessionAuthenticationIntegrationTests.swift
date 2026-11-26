@@ -20,7 +20,7 @@ struct `Sessions Authentication Integration Tests` {
         app.middleware.use(app.sessions.middleware)
 
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
@@ -98,7 +98,7 @@ struct `Sessions Authentication Integration Tests` {
         app.middleware.use(app.sessions.middleware)
 
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
@@ -180,7 +180,7 @@ struct `Sessions Authentication Integration Tests` {
     /// Configures a test Vapor application with Passage and session support disabled
     @Sendable private func configureWithoutSession(_ app: Application) async throws {
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
