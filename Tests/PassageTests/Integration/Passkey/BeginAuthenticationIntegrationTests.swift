@@ -30,7 +30,7 @@ struct `Passkey Begin Authentication Integration Tests` {
         allowDiscoverableLogin: Bool = true
     ) async throws {
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
@@ -197,7 +197,7 @@ struct `Passkey Begin Authentication Integration Tests` {
     func `POST begin returns 404 when passkey service is nil (routes not registered)`() async throws {
         try await withApp(configure: { app in
             await app.jwt.keys.add(
-                hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+                hmac: HMACKey(from: passageTestHMACSecret),
                 digestAlgorithm: .sha256,
                 kid: JWKIdentifier(string: "test-key")
             )

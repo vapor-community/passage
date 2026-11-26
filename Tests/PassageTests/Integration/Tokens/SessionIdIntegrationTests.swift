@@ -11,7 +11,7 @@ struct `Session ID Integration Tests` {
 
     @Sendable private func configure(_ app: Application) async throws {
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
@@ -190,7 +190,7 @@ struct `Session ID Integration Tests` {
         var configureWithSessions: (@Sendable (Application) async throws -> Void)?
         configureWithSessions = { app in
             await app.jwt.keys.add(
-                hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+                hmac: HMACKey(from: passageTestHMACSecret),
                 digestAlgorithm: .sha256,
                 kid: JWKIdentifier(string: "test-key")
             )
@@ -288,7 +288,7 @@ struct `Session ID Integration Tests` {
         var configureWithSessions: (@Sendable (Application) async throws -> Void)?
         configureWithSessions = { app in
             await app.jwt.keys.add(
-                hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+                hmac: HMACKey(from: passageTestHMACSecret),
                 digestAlgorithm: .sha256,
                 kid: JWKIdentifier(string: "test-key")
             )

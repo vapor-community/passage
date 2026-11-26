@@ -1,6 +1,9 @@
 import Vapor
 import NIOCore
 
+// JWTKit requires HS256 test keys to contain at least 32 bytes.
+let passageTestHMACSecret = "passage-test-secret-key-for-jwt-signing"
+
 // MARK: - Mock ViewRenderer for Testing
 
 /// Mock ViewRenderer for testing that captures template names and context data

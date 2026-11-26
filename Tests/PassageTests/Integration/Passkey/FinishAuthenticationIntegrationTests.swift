@@ -46,7 +46,7 @@ struct `Passkey Finish Authentication Integration Tests` {
         seedCredential: Bool = true
     ) async throws {
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
@@ -297,7 +297,7 @@ struct `Passkey Finish Authentication Integration Tests` {
     func `POST finish returns 404 when passkey service is nil (routes not registered)`() async throws {
         try await withApp(configure: { app in
             await app.jwt.keys.add(
-                hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+                hmac: HMACKey(from: passageTestHMACSecret),
                 digestAlgorithm: .sha256,
                 kid: JWKIdentifier(string: "test-key")
             )

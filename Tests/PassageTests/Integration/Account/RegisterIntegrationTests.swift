@@ -32,7 +32,7 @@ struct `Register Integration Tests` {
     ) async throws {
         // Add HMAC key directly for testing (simpler than RSA)
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )

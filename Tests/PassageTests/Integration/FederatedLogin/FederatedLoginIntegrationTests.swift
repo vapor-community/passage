@@ -14,7 +14,7 @@ struct `Federated Login Integration Tests` {
     /// Configures app with no account linking (disabled)
     @Sendable private func configureWithDisabledLinking(_ app: Application) async throws {
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
@@ -60,7 +60,7 @@ struct `Federated Login Integration Tests` {
     /// Configures app with automatic account linking
     @Sendable private func configureWithAutomaticLinking(_ app: Application) async throws {
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
@@ -106,7 +106,7 @@ struct `Federated Login Integration Tests` {
     /// Configures app with manual account linking and views
     @Sendable private func configureWithManualLinking(_ app: Application) async throws {
         await app.jwt.keys.add(
-            hmac: HMACKey(from: "test-secret-key-for-jwt-signing"),
+            hmac: HMACKey(from: passageTestHMACSecret),
             digestAlgorithm: .sha256,
             kid: JWKIdentifier(string: "test-key")
         )
