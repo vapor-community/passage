@@ -32,17 +32,20 @@ public extension Passage.Configuration {
 extension Passage.Configuration.Restoration {
 
     public struct Email: Sendable {
+        public let isEnabled: Bool
         let routes: Routes
         let codeLength: Int
         let codeExpiration: TimeInterval
         let maxAttempts: Int
 
         public init(
+            isEnabled: Bool = true,
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 15 * 60,  // 15 minutes
             maxAttempts: Int = 3,
         ) {
+            self.isEnabled = isEnabled
             self.routes = routes
             self.codeLength = codeLength
             self.codeExpiration = codeExpiration
@@ -122,17 +125,20 @@ extension Passage.Configuration {
 public extension Passage.Configuration.Restoration {
 
     struct Phone: Sendable {
+        public let isEnabled: Bool
         let routes: Routes
         let codeLength: Int
         let codeExpiration: TimeInterval
         let maxAttempts: Int
 
         public init(
+            isEnabled: Bool = true,
             routes: Routes = .init(),
             codeLength: Int = 6,
             codeExpiration: TimeInterval = 5 * 60,  // 5 minutes for SMS
             maxAttempts: Int = 3
         ) {
+            self.isEnabled = isEnabled
             self.routes = routes
             self.codeLength = codeLength
             self.codeExpiration = codeExpiration

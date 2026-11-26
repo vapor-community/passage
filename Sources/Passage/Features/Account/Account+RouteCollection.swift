@@ -4,18 +4,22 @@ extension Passage.Account {
 
     struct RouteCollection: Vapor.RouteCollection, Sendable {
 
-        init(routes: Passage.Configuration.Routes) {
+        init(routes: Passage.Configuration.Routes, account: Passage.Configuration.Account = .init()) {
             self.routes = routes
+            self.account = account
         }
 
         let routes: Passage.Configuration.Routes
+        let account: Passage.Configuration.Account
 
         func boot(routes builder: any RoutesBuilder) throws {
             let grouped = routes.group.isEmpty ? builder : builder.grouped(routes.group)
-            grouped.post(routes.register.path, use: self.register)
-            grouped
-                .grouped(LoginThrottleMiddleware())
-                .post(routes.login.path, use: self.login)
+            if account.password {
+                grouped.post(routes.register.path, use: self.register)
+                grouped
+                    .grouped(LoginThrottleMiddleware())
+                    .post(routes.login.path, use: self.login)
+            }
 
             grouped
                 .grouped(PassageSessionAuthenticator())

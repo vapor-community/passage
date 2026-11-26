@@ -26,6 +26,7 @@ try await app.passage.configure(
 | `jwt` | `Configuration+JWT.swift` | JWKS for signing tokens |
 | `verification` | `Configuration+Verification.swift` | Email/phone verification |
 | `restoration` | `Configuration+Restoration.swift` | Password reset |
+| `account` | `Configuration+Account.swift` | Password registration and login routes |
 | `passwordless` | `Configuration+Passwordless.swift` | Magic links |
 | `federatedLogin` | `Configuration+FederatedLogin.swift` | OAuth providers |
 | `passkey` | `Configuration+Passkey.swift` | WebAuthn / FIDO2 passkeys (default `.init()`) |
@@ -50,6 +51,20 @@ Default base path: `/auth`
 | Refresh | `/auth/refresh-token` | `routes: .init(refreshToken: .init(path: "refresh"))` |
 | Exchange | `/auth/token/exchange` | `routes: .init(exchangeCode: .init(path: "exchange"))` |
 | Current User | `/me` | `routes: .init(currentUser: .init(path: "user"))` |
+
+Password registration and login routes are enabled by default. Disable both POST routes and their configured GET views with `account: .init(password: false)`. Email and phone password reset channels can be disabled independently with `restoration: .init(email: .init(isEnabled: false))` or `phone: .init(isEnabled: false)`. This removes that channel's reset POST routes and configured request/confirmation views.
+
+```swift
+Passage.Configuration(
+    // ... other config ...
+    account: .init(password: false),
+    passwordless: .init(emailMagicLink: .email()), // Magic-link routes stay enabled
+    restoration: .init(
+        email: .init(isEnabled: false),
+        phone: .init(isEnabled: false)
+    )
+)
+```
 
 ## JWT/JWKS
 

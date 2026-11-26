@@ -6,50 +6,71 @@ extension Passage.Views {
 
         let group: [PathComponent]
         let config: Passage.Configuration.Views
+        let account: Passage.Configuration.Account
         let routes: Passage.Configuration.Routes
         let restoration: Passage.Configuration.Restoration
         let passwordless: Passage.Configuration.Passwordless
         let federatedLogin: Passage.Configuration.FederatedLogin
         let passkey: Passage.Configuration.Passkey?
 
+        init(
+            group: [PathComponent],
+            config: Passage.Configuration.Views,
+            account: Passage.Configuration.Account = .init(),
+            routes: Passage.Configuration.Routes,
+            restoration: Passage.Configuration.Restoration,
+            passwordless: Passage.Configuration.Passwordless,
+            federatedLogin: Passage.Configuration.FederatedLogin,
+            passkey: Passage.Configuration.Passkey?
+        ) {
+            self.group = group
+            self.config = config
+            self.account = account
+            self.routes = routes
+            self.restoration = restoration
+            self.passwordless = passwordless
+            self.federatedLogin = federatedLogin
+            self.passkey = passkey
+        }
+
         func boot(routes builder: any RoutesBuilder) throws {
             let grouped = group.isEmpty ? builder : builder.grouped(group)
 
-            if let _ = config.register {
+            if account.password, let _ = config.register {
                 grouped.get(routes.register.path) { req in
                     try await req.views.renderRegisterView()
                 }
             }
 
-            if let _ = config.login {
+            if account.password, let _ = config.login {
                 grouped.get(routes.login.path) { req in
                     try await req.views.renderLoginView()
                 }
             }
 
             if let _ = config.passwordResetRequest {
-                grouped.get(restoration.email.routes.request.path) { req in
-                    try await req.views.renderResetPasswordRequestView(
-                        for: .email
-                    )
+                if restoration.email.isEnabled {
+                    grouped.get(restoration.email.routes.request.path) { req in
+                        try await req.views.renderResetPasswordRequestView(for: .email)
+                    }
                 }
-                grouped.get(restoration.phone.routes.request.path) { req in
-                    try await req.views.renderResetPasswordRequestView(
-                        for: .phone
-                    )
+                if restoration.phone.isEnabled {
+                    grouped.get(restoration.phone.routes.request.path) { req in
+                        try await req.views.renderResetPasswordRequestView(for: .phone)
+                    }
                 }
             }
 
             if let _ = config.passwordResetConfirm {
-                grouped.get(restoration.email.routes.verify.path) { req in
-                    try await req.views.renderResetPasswordConfirmView(
-                        for: .email
-                    )
+                if restoration.email.isEnabled {
+                    grouped.get(restoration.email.routes.verify.path) { req in
+                        try await req.views.renderResetPasswordConfirmView(for: .email)
+                    }
                 }
-                grouped.get(restoration.phone.routes.verify.path) { req in
-                    try await req.views.renderResetPasswordConfirmView(
-                        for: .phone
-                    )
+                if restoration.phone.isEnabled {
+                    grouped.get(restoration.phone.routes.verify.path) { req in
+                        try await req.views.renderResetPasswordConfirmView(for: .phone)
+                    }
                 }
             }
 
