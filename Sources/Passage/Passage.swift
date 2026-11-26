@@ -28,7 +28,7 @@ public struct Passage: Sendable {
 
         try await app.jwt.keys.add(jwksJSON: configuration.jwt.jwks.json)
 
-        try app.register(collection: Account.RouteCollection(routes: configuration.routes))
+        try app.register(collection: Account.RouteCollection(routes: configuration.routes, account: configuration.account))
         try app.register(collection: Tokens.RouteCollection(routes: configuration.routes))
 
         if let _ = services.emailDelivery {
@@ -38,10 +38,12 @@ public struct Passage: Sendable {
                 group: configuration.routes.group
             ))
             // Register email password reset routes if delivery is provided
-            try app.register(collection: Restoration.EmailRouteCollection(
-                routes: configuration.restoration.email.routes,
-                group: configuration.routes.group
-            ))
+            if configuration.restoration.email.isEnabled {
+                try app.register(collection: Restoration.EmailRouteCollection(
+                    routes: configuration.restoration.email.routes,
+                    group: configuration.routes.group
+                ))
+            }
             // Register email magic link routes for passwordless authentication
             if let emailMagicLink = configuration.passwordless.emailMagicLink {
                 try app.register(collection: Passwordless.MagicLinkEmailRouteCollection(
@@ -58,10 +60,12 @@ public struct Passage: Sendable {
                 groupPath: configuration.routes.group
             ))
             // Register phone password reset routes if delivery is provided
-            try app.register(collection: Restoration.PhoneRouteCollection(
-                routes: configuration.restoration.phone.routes,
-                groupPath: configuration.routes.group
-            ))
+            if configuration.restoration.phone.isEnabled {
+                try app.register(collection: Restoration.PhoneRouteCollection(
+                    routes: configuration.restoration.phone.routes,
+                    groupPath: configuration.routes.group
+                ))
+            }
         }
 
         //
@@ -70,6 +74,7 @@ public struct Passage: Sendable {
             try app.register(collection: Views.RouteCollection(
                 group: configuration.routes.group,
                 config: configuration.views,
+                account: configuration.account,
                 routes: configuration.routes,
                 restoration: configuration.restoration,
                 passwordless: configuration.passwordless,

@@ -416,9 +416,13 @@ _No dedicated example yet — see [rozd/passage-example](https://github.com/rozd
 Requires `EmailDelivery`. See the [Services chapter](#services-to-implement) for integration options.
 
 #### Configuration
+
+For an app that signs users in exclusively with magic links, disable password registration, login, and both reset channels as shown below. Password routes are enabled by default.
+
 ```swift
 Passage.Configuration(
     // ... other config ...
+    account: .init(password: false),
     tokens: .init(
         refreshToken: .init(
             timeToLive: 7 * 24 * 3600,
@@ -433,6 +437,10 @@ Passage.Configuration(
             autoCreateUser: true,           // Create user on first successful link
             requireSameBrowser: false       // Gate verification to the requesting browser
         )
+    ),
+    restoration: .init(
+        email: .init(isEnabled: false),
+        phone: .init(isEnabled: false)
     )
 )
 ```

@@ -28,7 +28,11 @@ struct `Register Integration Tests` {
     /// Configures a test Vapor application with Passage and message capture
     @Sendable private func configureWithCapture(
         _ app: Application,
-        captured: CapturedMessages?
+        captured: CapturedMessages?,
+        account: Passage.Configuration.Account = .init(),
+        restoration: Passage.Configuration.Restoration? = nil,
+        passwordless: Passage.Configuration.Passwordless = .init(),
+        views: Passage.Configuration.Views = .init()
     ) async throws {
         // Add HMAC key directly for testing (simpler than RSA)
         await app.jwt.keys.add(
@@ -62,12 +66,14 @@ struct `Register Integration Tests` {
         let configuration = try Passage.Configuration(
             origin: URL(string: "http://localhost:8080")!,
             routes: .init(),
+            account: account,
             tokens: .init(
                 issuer: "test-issuer",
                 accessToken: .init(timeToLive: 3600),
                 refreshToken: .init(timeToLive: 86400)
             ),
             jwt: .init(jwks: .init(json: emptyJwks)),
+            passwordless: passwordless,
             verification: .init(
                 email: .init(
                     codeLength: 6,
@@ -81,7 +87,7 @@ struct `Register Integration Tests` {
                 ),
                 useQueues: true
             ),
-            restoration: .init(
+            restoration: restoration ?? .init(
                 email: .init(
                     codeLength: 6,
                     codeExpiration: 600,
@@ -93,13 +99,84 @@ struct `Register Integration Tests` {
                     maxAttempts: 5
                 ),
                 useQueues: true
-            )
+            ),
+            views: views
         )
 
         try await app.passage.configure(
             services: services,
             configuration: configuration
         )
+    }
+
+    @Test
+    func `configure can disable password and restoration routes by channel`() async throws {
+        let scenarios: [(Passage.Configuration.Account, Passage.Configuration.Restoration, Bool, Bool, Bool)] = [
+            (.init(), .init(), true, true, true),
+            (.init(password: false), .init(email: .init(isEnabled: false), phone: .init(isEnabled: false)), false, false, false),
+            (.init(), .init(email: .init(isEnabled: false)), true, false, true),
+            (.init(), .init(phone: .init(isEnabled: false)), true, true, false),
+        ]
+
+        for (account, restoration, passwordEnabled, emailEnabled, phoneEnabled) in scenarios {
+            try await withApp(configure: { app in
+                let theme = Passage.Views.Theme(colors: .defaultLight)
+                try await configureWithCapture(
+                    app,
+                    captured: nil,
+                    account: account,
+                    restoration: restoration,
+                    passwordless: .init(emailMagicLink: .email()),
+                    views: .init(
+                        register: .init(style: .material, theme: theme, identifier: .email),
+                        login: .init(style: .material, theme: theme, identifier: .email),
+                        passwordResetRequest: .init(style: .material, theme: theme),
+                        passwordResetConfirm: .init(style: .material, theme: theme),
+                        magicLinkRequest: .init(style: .material, theme: theme)
+                    )
+                )
+            }) { app in
+                let expectations: [(HTTPMethod, String, Bool)] = [
+                    (.POST, "auth/register", passwordEnabled),
+                    (.POST, "auth/login", passwordEnabled),
+                    (.POST, "auth/password/reset/email", emailEnabled),
+                    (.POST, "auth/password/reset/email/verify", emailEnabled),
+                    (.POST, "auth/password/reset/email/resend", emailEnabled),
+                    (.POST, "auth/password/reset/phone", phoneEnabled),
+                    (.POST, "auth/password/reset/phone/verify", phoneEnabled),
+                    (.POST, "auth/password/reset/phone/resend", phoneEnabled),
+                    (.POST, "auth/logout", true),
+                    (.GET, "me", true),
+                    (.POST, "auth/email/verify", true),
+                    (.GET, "auth/email/verify", true),
+                    (.POST, "auth/email/resend", true),
+                    (.POST, "auth/phone/send-code", true),
+                    (.POST, "auth/phone/verify", true),
+                    (.POST, "auth/phone/resend", true),
+                    (.POST, "auth/magic-link/email", true),
+                    (.GET, "auth/magic-link/email/verify", true),
+                    (.POST, "auth/magic-link/email/resend", true),
+                    (.GET, "auth/register", passwordEnabled),
+                    (.GET, "auth/login", passwordEnabled),
+                    (.GET, "auth/password/reset/email", emailEnabled),
+                    (.GET, "auth/password/reset/email/verify", emailEnabled),
+                    (.GET, "auth/password/reset/phone", phoneEnabled),
+                    (.GET, "auth/password/reset/phone/verify", phoneEnabled),
+                    (.GET, "auth/magic-link/email", true),
+                ]
+                for (method, path, enabled) in expectations {
+                    let exists = app.routes.all.contains {
+                        $0.method == method && $0.path.string == path
+                    }
+                    #expect(exists == enabled, "Unexpected route registration for \(method) \(path)")
+                    if !enabled {
+                        try await app.testing().test(method, path) { response async in
+                            #expect(response.status == .notFound)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Successful Registration Tests

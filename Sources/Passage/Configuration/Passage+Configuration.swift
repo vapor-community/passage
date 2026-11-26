@@ -8,6 +8,7 @@ extension Passage {
     public struct Configuration: Sendable {
         let origin: URL
         let routes: Routes
+        let account: Account
         let tokens: Tokens
         let sessions: Sessions
         let jwt: JWT
@@ -23,6 +24,7 @@ extension Passage {
         public init(
             origin: URL,
             routes: Routes = .init(),
+            account: Account = .init(),
             tokens: Tokens = .init(),
             sessions: Sessions = .init(),
             jwt: JWT? = nil,
@@ -37,6 +39,7 @@ extension Passage {
         ) throws {
             self.origin = origin
             self.routes = routes
+            self.account = account
             self.tokens = tokens
             self.sessions = sessions
             self.jwt = try jwt ?? JWT(jwks: try .fileFromEnvironment())
